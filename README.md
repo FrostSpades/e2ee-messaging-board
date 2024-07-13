@@ -1,1 +1,1 @@
-# encrypted-messaging-board
+# Encrypted Messaging Board API/Application
