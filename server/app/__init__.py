@@ -14,7 +14,7 @@ def create_app():
     app.config.from_pyfile('config.py', silent=True)
 
 
-    from . import routes
-    app.register_blueprint(routes.bp)
+    from . import account_routes
+    app.register_blueprint(account_routes.bp)
 
     return app
