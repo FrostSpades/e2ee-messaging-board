@@ -1,3 +1,9 @@
+"""
+Routes related to account information and login.
+
+@author Ethan Andrews
+@version 2024.7.14
+"""
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.forms import RegistrationForm, LoginForm
 
@@ -11,7 +17,6 @@ def home():
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
-    print("LOGIN CLICKED")
     form = LoginForm()
 
     if form.validate_on_submit():
