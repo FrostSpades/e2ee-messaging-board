@@ -30,6 +30,8 @@ def create_app():
     from . import board_routes
     app.register_blueprint(board_routes.bp)
 
+    login_manager.login_view = 'main.login'
+
     db.init_app(app)
     login_manager.init_app(app)
 

@@ -9,6 +9,7 @@ from app.forms import RegistrationForm, LoginForm
 from app.models import User
 from app import db, login_manager
 from flask_login import login_user, logout_user, login_required, current_user
+import time
 
 bp = Blueprint('main', __name__)
 
@@ -22,13 +23,16 @@ def home():
 def login():
     form = LoginForm()
 
+    # If user is already logged in, redirect to dashboard
     if current_user.is_authenticated:
         return redirect(url_for('board.dashboard'))
 
     if form.validate_on_submit():
         if check_credentials(request.form['email'], request.form['password']):
+            # Log the user into the website
             user = User.query.filter_by(email=request.form['email']).first()
             login_user(user)
+            session['last_login_time'] = time.time()
             return redirect(url_for('board.dashboard'))
 
         else:
@@ -42,6 +46,7 @@ def login():
 def register():
     form = RegistrationForm()
 
+    # If user is already logged in, redirect to dashboard
     if current_user.is_authenticated:
         return redirect(url_for('board.dashboard'))
 
@@ -61,8 +66,9 @@ def register():
 
 @bp.route('/logout')
 def logout():
-    # Logout the user
+    # Logout the user and clear the session
     logout_user()
+    session.clear()
 
     return redirect(url_for('main.home'))
 
@@ -118,3 +124,14 @@ def create_user(username, email, password):
     new_user.set_password(password)
     db.session.add(new_user)
     db.session.commit()
+
+
+@bp.before_request
+def check_time_since_login():
+    """
+    Method that logs out the current user after a certain amount of time.
+    :return:
+    """
+    if current_user.is_authenticated:
+        if time.time() - session['last_login_time'] > 60:
+            logout_user()
