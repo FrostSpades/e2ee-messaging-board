@@ -15,15 +15,21 @@ db = SQLAlchemy()
 
 
 def create_app():
+    """
+    Returns an instance of the application.
+
+    :return: application
+    """
 
     app = Flask(__name__)
     app.config.from_object('config.Config')
     app.config.from_pyfile('config.py', silent=True)
 
-    db.init_app(app)
-
-
     from . import account_routes
     app.register_blueprint(account_routes.bp)
+    from . import board_routes
+    app.register_blueprint(board_routes.bp)
+
+    db.init_app(app)
 
     return app

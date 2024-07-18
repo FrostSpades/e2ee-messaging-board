@@ -4,8 +4,9 @@ Routes related to account information and login.
 @author Ethan Andrews
 @version 2024.7.14
 """
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, session, redirect, url_for, flash
 from app.forms import RegistrationForm, LoginForm
+from flask_login import LoginManager, login_user, logout_user, login_required, UserMixin
 
 bp = Blueprint('main', __name__)
 
@@ -33,3 +34,11 @@ def register():
         return redirect(url_for('main.login'))
 
     return render_template('register.html', title='Register', form=form)
+
+
+@bp.route('/logout')
+def logout():
+    # Clear session data
+    session.clear()
+
+    return redirect(url_for('main.home'))
