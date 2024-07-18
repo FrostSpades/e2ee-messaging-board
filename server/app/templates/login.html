@@ -10,6 +10,7 @@
     <div class="container">
         <h1>Login to Your E2EE Application</h1>
         <form method="POST">
+            {{ form.hidden_tag() }}
             <p>{{ form.email.label }} {{ form.email() }}</p>
             <p>{{ form.password.label }} {{ form.password() }}</p>
             <p>{{ form.remember.label }} {{ form.remember() }}</p>
