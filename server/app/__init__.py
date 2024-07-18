@@ -31,5 +31,6 @@ def create_app():
     app.register_blueprint(board_routes.bp)
 
     db.init_app(app)
+    login_manager.init_app(app)
 
     return app

@@ -16,7 +16,6 @@ class RegistrationForm(FlaskForm):
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Sign Up')
 
-    @staticmethod
     def validate_username(self, username):
         if username.data == 'admin':
             raise ValidationError('Invalid username')
