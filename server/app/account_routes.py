@@ -133,5 +133,5 @@ def check_time_since_login():
     :return:
     """
     if current_user.is_authenticated:
-        if time.time() - session['last_login_time'] > 60:
+        if time.time() - session['last_login_time'] > 600:
             logout_user()
