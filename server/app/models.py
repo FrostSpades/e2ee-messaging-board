@@ -24,3 +24,25 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+
+class Post(db.Model):
+    post_id = db.Column(db.Integer, primary_key=True)
+    encrypted_title = db.Column(db.String(120), nullable=False)
+    encrypted_message = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    page_id = db.Column(db.Integer, db.ForeignKey('page.id'), nullable=False)
+
+
+class Page(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    encrypted_title = db.Column(db.String(120), nullable=False)
+    encrypted_description = db.Column(db.Text, nullable=True)
+    posts = db.relationship('Post', backref='page', lazy=True)
+    users = db.relationship('User', secondary='page_user', backref='pages')
+
+
+class PageUser(db.Model):
+    __tablename__ = 'page_user'
+    page_id = db.Column(db.Integer, db.ForeignKey('page.id'), primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
