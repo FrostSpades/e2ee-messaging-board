@@ -5,8 +5,8 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => console.error('Error:', error));
 });
 
-/*
-  Method for handling inviting users to page.
+/**
+ * Method for handling inviting users to page.
  */
 function addUser() {
     const form = document.getElementById('add-user-form');
@@ -21,9 +21,25 @@ function addUser() {
     .catch(error => console.error('Error:', error));
 }
 
-/*
-  Method for updating the create_page screen.
-  @param {json} data - The json object returned from the AJAX request
+/**
+ * Method for handling removing users to the page.
+ */
+function removeUser() {
+    const form = document.getElementById('remove-user-form');
+    const form_data = new FormData(form);
+
+    fetch('/create-page/remove-user', {
+        method: 'POST',
+        body: form_data
+    })
+    .then(response => response.json())
+    .then(updateScreen)
+    .catch(error => console.error('Error:', error));
+}
+
+/**
+ * Method for updating the create_page screen.
+ * @param data - The json object returned from the AJAX request
  */
 function updateScreen(data) {
     // Update the user list

@@ -5,7 +5,7 @@ Routes related to account information and login.
 @version 2024.7.14
 """
 from flask import Blueprint, render_template, session, redirect, url_for, flash, request
-from app.forms import RegistrationForm, LoginForm
+from app.account_forms import RegistrationForm, LoginForm
 from app.models import User
 from app import db, login_manager
 from flask_login import login_user, logout_user, login_required, current_user

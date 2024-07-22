@@ -27,14 +27,24 @@
                 </div>
                 <button type="submit">Create Page</button>
             </form>
-            <form id="add-user-form">
-                {{ add_user_form.hidden_tag() }}
-                <div class="form-group">
-                    <label>Invite Username</label>
-                    {{ add_user_form.new_user(placeholder="Invite user", autocomplete="new-user") }}
-                </div>
-                <button type="button" onclick="addUser()">Submit</button>
-            </form>
+            <div class="add-user-forms">
+                <form id="add-user-form">
+                    {{ add_user_form.hidden_tag() }}
+                    <div class="form-group">
+                        <label>Invite Username</label>
+                        {{ add_user_form.new_user(placeholder="Invite user", autocomplete="new-user") }}
+                    </div>
+                    <button type="button" onclick="addUser()">Submit</button>
+                </form>
+                <form id="remove-user-form">
+                    {{ remove_user_form.hidden_tag() }}
+                    <div class="form-group">
+                        <label>Remove Invited Username</label>
+                        {{ remove_user_form.remove_user(placeholder="Remove Invited user", autocomplete="remove-user") }}
+                    </div>
+                    <button type="button" onclick="removeUser()">Submit</button>
+                </form>
+            </div>
         </div>
     </div>
     <script src="{{ url_for('static', filename='js/dashboard-manager.js') }}"></script>

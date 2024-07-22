@@ -118,11 +118,19 @@ button:hover {
 /* Ensure the forms container uses flexbox layout */
 .forms-container {
     display: flex;
+    justify-content: space-between; /* Adjust spacing between forms */
     gap: 20px; /* Adjust the gap between forms as needed */
 }
 
-/* Ensure forms take up equal space */
-#add-user-form, #create-page-form {
+/* Style for the forms inside add-user-forms */
+.add-user-forms {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Adjust the gap between the stacked forms as needed */
+}
+
+/* Ensure create-page-form and add-user-forms take up equal space */
+#add-user-form, #create-page-form, #remove-user-form {
     flex: 1; /* Make both forms take up equal space */
     padding: 20px;
     border: 1px solid #ddd;
@@ -167,22 +175,4 @@ button {
 
 button:hover {
     background-color: dodgerblue;
-}
-
-.scrollable-container {
-    height: 100px; /* Fixed height for the container */
-    overflow-y: auto; /* Enable vertical scrolling */
-    border: 1px solid #ddd; /* Optional: border around the container */
-    padding: 5px; /* Optional: padding inside the container */
-}
-
-.scrollable-list {
-    list-style-type: none; /* Remove default list styling */
-    padding: 0;
-    margin: 0;
-}
-
-.scrollable-list li {
-    padding: 5px;
-    border-bottom: 1px solid #ddd; /* Optional: border between items */
 }

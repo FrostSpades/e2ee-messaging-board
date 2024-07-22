@@ -1,5 +1,5 @@
 """
-Forms for the website application.
+Forms for the account aspect of the application.
 
 @author Ethan Andrews
 @version 2024.7.14
@@ -31,10 +31,3 @@ class LoginForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
-
-
-class AddUserForm(FlaskForm):
-    """
-    Form for inviting a user to a page.
-    """
-    new_user = StringField('NewUsername', validators=[DataRequired(), Length(min=2, max=20)])
