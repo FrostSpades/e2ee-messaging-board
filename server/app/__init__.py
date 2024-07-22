@@ -25,6 +25,7 @@ def create_app():
     app.config.from_object('config.Config')
     app.config.from_pyfile('config.py', silent=True)
 
+    # Import all the routes from the blueprints
     from . import account_routes
     app.register_blueprint(account_routes.bp)
     from . import board_routes

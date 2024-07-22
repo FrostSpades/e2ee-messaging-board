@@ -10,6 +10,9 @@ from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationE
 
 
 class RegistrationForm(FlaskForm):
+    """
+    Form for registering a new user.
+    """
     username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
@@ -22,6 +25,17 @@ class RegistrationForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
+    """
+    Form for logging in.
+    """
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Login')
+
+
+class AddUserForm(FlaskForm):
+    """
+    Form for inviting a user to a page.
+    """
+    username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
     submit = SubmitField('Login')

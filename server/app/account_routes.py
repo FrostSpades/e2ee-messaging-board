@@ -14,13 +14,23 @@ import time
 bp = Blueprint('main', __name__)
 
 
-@bp.route('/', methods=['GET', 'POST'])
+@bp.route('/', methods=['GET'])
 def home():
+    """
+    Shows the home page.
+
+    :return: the home page
+    """
     return render_template('base.html')
 
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
+    """
+    Handles login page.
+
+    :return: dashboard if successful, or login page if unsuccessful
+    """
     form = LoginForm()
 
     # If user is already logged in, redirect to dashboard
@@ -44,31 +54,41 @@ def login():
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
+    """
+    Handles user registration page.
+    :return: login form if successful, register form if unsuccessful
+    """
     form = RegistrationForm()
 
-    # If user is already logged in, redirect to dashboard
-    if current_user.is_authenticated:
-        return redirect(url_for('board.dashboard'))
+    if request.method == 'POST':
+        # If user is already logged in, redirect to dashboard
+        if current_user.is_authenticated:
+            return redirect(url_for('board.dashboard'))
 
-    if form.validate_on_submit():
-        # If user does not exist, create user
-        if not user_exists(request.form['username'], request.form['email']):
-            create_user(request.form['username'], request.form['email'], request.form['password'])
+        if form.validate_on_submit():
+            # If user does not exist, create user
+            if not user_exists(request.form['username'], request.form['email']):
+                create_user(request.form['username'], request.form['email'], request.form['password'])
 
-            return redirect(url_for('main.login'))
+                return redirect(url_for('main.login'))
 
-        else:
-            flash("Username/Email already registered", "error")
-            return redirect(url_for('main.register'))
+            else:
+                flash("Username/Email already registered", "error")
+                return redirect(url_for('main.register'))
 
-    return render_template('register.html', title='Register', form=form)
+    # Show register form if GET request
+    else:
+        return render_template('register.html', title='Register', form=form)
 
 
 @bp.route('/logout')
 def logout():
-    # Logout the user and clear the session
+    """
+    Logs the user out.
+    :return: redirect to home page
+    """
+    # Logout the user
     logout_user()
-    session.clear()
 
     return redirect(url_for('main.home'))
 

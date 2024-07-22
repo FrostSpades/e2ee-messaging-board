@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E2EE Application - Login</title>
-    <link rel="stylesheet" href="../static/css/styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <div class="container">
         <h1>Login to Your E2EE Application</h1>
         <form method="POST">
             {{ form.hidden_tag() }}
-            <p>{{ form.email.label }} {{ form.email() }}</p>
-            <p>{{ form.password.label }} {{ form.password() }}</p>
+            <p>{{ form.email.label }} {{ form.email(placeholder="Enter Email") }}</p>
+            <p>{{ form.password.label }} {{ form.password(placeholder="Enter Password") }}</p>
             <p>{{ form.submit() }}</p>
         </form>
         {% with messages = get_flashed_messages(with_categories=true) %}

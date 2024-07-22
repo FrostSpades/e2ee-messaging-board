@@ -4,17 +4,20 @@ body {
     text-align: center;
     padding: 50px;
 }
+
 .container {
-    max-width: 400px;
+    max-width: 800px;
     margin: 0 auto;
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
+
 h1 {
     color: #333;
 }
+
 input[type="text"], input[type="password"], input[type="submit"] {
     width: 100%;
     padding: 10px;
@@ -23,6 +26,7 @@ input[type="text"], input[type="password"], input[type="submit"] {
     border: 1px solid #ccc;
     border-radius: 5px;
 }
+
 input[type="submit"] {
     background-color: #007bff;
     color: #fff;
@@ -30,18 +34,22 @@ input[type="submit"] {
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
+
 input[type="submit"]:hover {
     background-color: #0056b3;
 }
+
 .alert-error {
     color: #721c24;
     background-color: #f8d7da;
     border-color: #f5c6cb;
 }
+
 ul.no-bullets {
     list-style-type: none;
     padding: 0;
 }
+
 ul.no-bullets li {
     padding: 5px 0;
 }
@@ -50,14 +58,17 @@ form {
     display: flex;
     flex-direction: column;
 }
+
 .form-group {
     margin-bottom: 15px;
 }
+
 .form-group label {
     font-weight: bold;
     margin-bottom: 5px;
     display: block;
 }
+
 .form-group input[type="text"],
 .form-group textarea,
 .form-group select {
@@ -67,9 +78,11 @@ form {
     border-radius: 4px;
     box-sizing: border-box;
 }
+
 .form-group textarea {
     resize: vertical;
 }
+
 button {
     background-color: cornflowerblue;
     color: #fff;
@@ -79,6 +92,97 @@ button {
     cursor: pointer;
     font-size: 16px;
 }
+
 button:hover {
     background-color: dodgerblue;
+}
+
+.scrollable-container {
+    height: 100px; /* Fixed height for the container */
+    overflow-y: auto; /* Enable vertical scrolling */
+    border: 1px solid #ddd; /* Optional: border around the container */
+    padding: 5px; /* Optional: padding inside the container */
+}
+
+.scrollable-list {
+    list-style-type: none; /* Remove default list styling */
+    padding: 0;
+    margin: 0;
+}
+
+.scrollable-list li {
+    padding: 5px;
+    border-bottom: 1px solid #ddd; /* Optional: border between items */
+}
+
+/* Ensure the forms container uses flexbox layout */
+.forms-container {
+    display: flex;
+    gap: 20px; /* Adjust the gap between forms as needed */
+}
+
+/* Ensure forms take up equal space */
+#add-user-form, #create-page-form {
+    flex: 1; /* Make both forms take up equal space */
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff; /* Keep the background consistent */
+}
+
+/* Adjust the form group styling if needed */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.form-group input[type="text"],
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+
+button {
+    background-color: cornflowerblue;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: dodgerblue;
+}
+
+.scrollable-container {
+    height: 100px; /* Fixed height for the container */
+    overflow-y: auto; /* Enable vertical scrolling */
+    border: 1px solid #ddd; /* Optional: border around the container */
+    padding: 5px; /* Optional: padding inside the container */
+}
+
+.scrollable-list {
+    list-style-type: none; /* Remove default list styling */
+    padding: 0;
+    margin: 0;
+}
+
+.scrollable-list li {
+    padding: 5px;
+    border-bottom: 1px solid #ddd; /* Optional: border between items */
 }

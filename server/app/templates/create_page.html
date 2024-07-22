@@ -4,38 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Page</title>
-    <link rel="stylesheet" href="../static/css/styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <div class="container">
         <h1>Create a New Page</h1>
-        <form method="POST">
-            <div class="form-group">
-                <label for="title">Page Title:</label>
-                <input type="text" id="title" name="title" placeholder="Enter page title" required>
-            </div>
-            <div class="form-group">
-                <label for="description">Page Description:</label>
-                <textarea id="description" name="description" rows="4" placeholder="Enter page description" required></textarea>
-            </div>
-            <div class="form-group">
-                <label for="existing_users">Invite Existing Users:</label>
-                <select id="existing_users" name="existing_users" multiple>
-                    {% for user in users %}
-                        <option value="{{ user.id }}">{{ user.username }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="new_user_username">New User Username:</label>
-                <input type="text" id="new_user_username" name="new_user_username" placeholder="Enter new user username">
-            </div>
-            <div class="form-group">
-                <label for="new_user_email">New User Email:</label>
-                <input type="text" id="new_user_email" name="new_user_email" placeholder="Enter new user email">
-            </div>
-            <button type="submit">Create Page</button>
-        </form>
+        <div class="forms-container">
+            <form id="create-page-form" method="POST" action="{{ url_for('board.create_page') }}">
+                <div class="form-group">
+                    <label for="title">Page Title:</label>
+                    <input type="text" id="title" name="title" placeholder="Enter page title" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Page Description:</label>
+                    <textarea id="description" name="description" rows="4" placeholder="Enter page description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="add_user_list">Currently Invited Users:</label>
+                    <div class="scrollable-container">
+                        <ul id="add_user_list" class="scrollable-list"></ul>
+                    </div>
+                </div>
+                <button type="submit">Create Page</button>
+            </form>
+            <form id="add-user-form">
+                {{ add_user_form.hidden_tag() }}
+                <div class="form-group">
+                    <label>Add Username</label>
+                    {{ add_user_form.username(placeholder="Enter new user") }}
+                </div>
+                <button type="button" onclick="addUser()">Submit</button>
+            </form>
+        </div>
     </div>
+    <script src="{{ url_for('static', filename='js/dashboard-manager.js') }}"></script>
 </body>
 </html>
