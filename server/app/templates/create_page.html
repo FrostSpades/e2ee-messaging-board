@@ -30,8 +30,8 @@
             <form id="add-user-form">
                 {{ add_user_form.hidden_tag() }}
                 <div class="form-group">
-                    <label>Add Username</label>
-                    {{ add_user_form.username(placeholder="Enter new user") }}
+                    <label>Invite Username</label>
+                    {{ add_user_form.new_user(placeholder="Invite user", autocomplete="new-user") }}
                 </div>
                 <button type="button" onclick="addUser()">Submit</button>
             </form>

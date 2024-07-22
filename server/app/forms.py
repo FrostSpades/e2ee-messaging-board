@@ -37,5 +37,4 @@ class AddUserForm(FlaskForm):
     """
     Form for inviting a user to a page.
     """
-    username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
-    submit = SubmitField('Login')
+    new_user = StringField('NewUsername', validators=[DataRequired(), Length(min=2, max=20)])
