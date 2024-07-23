@@ -8,10 +8,10 @@ from flask import Blueprint, render_template, session, redirect, url_for, flash,
 from app.account_forms import RegistrationForm, LoginForm
 from app.models import User
 from app import db, login_manager
-from flask_login import login_user, logout_user, login_required, current_user
+from flask_login import login_user, logout_user, current_user
 import time
 
-bp = Blueprint('main', __name__)
+bp = Blueprint('account', __name__)
 
 
 @bp.route('/', methods=['GET'])
@@ -47,7 +47,7 @@ def login():
 
         else:
             flash('Invalid username or password', 'error')
-            return redirect(url_for('main.login'))
+            return redirect(url_for('account.login'))
 
     return render_template('login.html', title='Login', form=form)
 
@@ -70,11 +70,11 @@ def register():
             if not user_exists(request.form['username'], request.form['email']):
                 create_user(request.form['username'], request.form['email'], request.form['password'])
 
-                return redirect(url_for('main.login'))
+                return redirect(url_for('account.login'))
 
             else:
                 flash("Username/Email already registered", "error")
-                return redirect(url_for('main.register'))
+                return redirect(url_for('account.register'))
 
     # Show register form if GET request
     else:
@@ -90,7 +90,7 @@ def logout():
     # Logout the user
     logout_user()
 
-    return redirect(url_for('main.home'))
+    return redirect(url_for('home.home'))
 
 
 @login_manager.user_loader
