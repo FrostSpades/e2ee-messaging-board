@@ -28,8 +28,10 @@ def create_app():
     # Import all the routes from the blueprints
     from . import account_routes
     app.register_blueprint(account_routes.bp)
-    from . import board_routes
-    app.register_blueprint(board_routes.bp)
+    from . import dashboard_routes
+    app.register_blueprint(dashboard_routes.bp)
+    from . import page_routes
+    app.register_blueprint(page_routes.bp)
 
     login_manager.login_view = 'main.login'
 

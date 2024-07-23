@@ -1,5 +1,5 @@
 """
-Forms for the dashboard part of the application.
+Forms for the pages part of the application.
 
 @author Ethan Andrews
 @version 2024.7.14

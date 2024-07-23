@@ -10,7 +10,7 @@
     <div class="container">
         <h1>Create a New Page</h1>
         <div class="forms-container">
-            <form id="create-page-form" method="POST" action="{{ url_for('board.create_page_submit') }}">
+            <form id="create-page-form" method="POST" action="{{ url_for('page.create_page_submit') }}">
                 {{ page_create_form.hidden_tag() }}
                 <div class="form-group">
                     <label for="encrypted_title">Page Title:</label>

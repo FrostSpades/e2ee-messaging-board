@@ -35,7 +35,7 @@ def login():
 
     # If user is already logged in, redirect to dashboard
     if current_user.is_authenticated:
-        return redirect(url_for('board.dashboard'))
+        return redirect(url_for('dashboard.dashboard'))
 
     if form.validate_on_submit():
         if check_credentials(request.form['email'], request.form['password']):
@@ -43,7 +43,7 @@ def login():
             user = User.query.filter_by(email=request.form['email']).first()
             login_user(user)
             session['last_login_time'] = time.time()
-            return redirect(url_for('board.dashboard'))
+            return redirect(url_for('dashboard.dashboard'))
 
         else:
             flash('Invalid username or password', 'error')
@@ -63,7 +63,7 @@ def register():
     if request.method == 'POST':
         # If user is already logged in, redirect to dashboard
         if current_user.is_authenticated:
-            return redirect(url_for('board.dashboard'))
+            return redirect(url_for('dashboard.dashboard'))
 
         if form.validate_on_submit():
             # If user does not exist, create user

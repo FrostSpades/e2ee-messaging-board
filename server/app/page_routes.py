@@ -1,28 +1,17 @@
 """
-Routes for the dashboard behavior which involves creating pages and showing the dashboard.
+Routes for the page behavior.
 
 @author Ethan Andrews
 @version 2024.7.22
 """
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
+from flask import Blueprint, render_template, redirect, url_for, jsonify, session
 from flask_login import login_required, current_user
 from app.account_routes import check_time_since_login as main_check_time_since_login
-from app.board_forms import AddUserForm, RemoveUserForm, PageCreateForm
+from app.page_forms import AddUserForm, RemoveUserForm, PageCreateForm
 from app.models import User, Page, PageUser, Invite
 from app import db
 
-bp = Blueprint('board', __name__)
-
-
-@bp.route('/dashboard')
-@login_required
-def dashboard():
-    """
-    Handles dashboard page.
-
-    :return:
-    """
-    return render_template('dashboard.html', title='Dashboard')
+bp = Blueprint('page', __name__)
 
 
 @bp.route('/create-page', methods=['GET'])
@@ -126,11 +115,12 @@ def create_page_submit():
             invite = Invite(page_id=new_page.id, user_id=invited_user.id)
             db.session.add(invite)
 
+        # Clear invited users from the session and commit
         session['invite_users'] = []
         db.session.commit()
-        return redirect(url_for('board.dashboard'))
+        return redirect(url_for('dashboard.dashboard'))
 
-    return redirect(url_for('board.create_page'))
+    return redirect(url_for('dashboard.create_page'))
 
 
 @bp.route('/create-page/init-get', methods=['GET'])
