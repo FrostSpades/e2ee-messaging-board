@@ -17,7 +17,7 @@
             </ul>
             <form action="{{ url_for('account.logout') }}" method="post">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <button type="submit">Logout</button>
+                <button type="submit" class="btn btn-outline-secondary ml-2">Logout</button>
             </form>
         </nav>
     </div>
@@ -27,8 +27,5 @@
             <p>Use the navigation menu to access different parts of the application.</p>
         </section>
     </main>
-    <footer>
-        <p>&copy; 2024 Messaging Board App. All rights reserved.</p>
-    </footer>
 </body>
 </html>
