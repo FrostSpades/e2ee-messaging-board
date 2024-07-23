@@ -125,14 +125,38 @@ def create_page_submit():
 
 @bp.route('/create-page/init-get', methods=['GET'])
 @login_required
-def init_get():
+def create_page_init_get():
     """
-    Returns the objects necessary for page loading.
+    Returns the objects necessary for page loading the create-page html file.
     :return: json representation of necessary page objects
     """
     # Assuming 'invite_users' is a list of usernames in the session
     invite_users = session.get('invite_users', [])
     return jsonify({"invite_users": invite_users})
+
+
+@bp.route('/pages/init-get', methods=['GET'])
+@login_required
+def pages_init_get():
+    """
+    Returns the objects necessary for page loading the pages html file.
+    :return:
+    """
+    # Extract page information
+    users_pages = User.query.filter_by(id=current_user.id).first().pages
+    page_ids = []
+    page_titles = []
+    for page in users_pages:
+        page_ids.append(page.id)
+        page_titles.append(page.encrypted_title)
+
+    return jsonify({"page_ids": page_ids, "page_titles": page_titles})
+
+
+@bp.route('/pages', methods=['GET'])
+@login_required
+def pages():
+    return render_template('pages.html', title="Pages", pages=[])
 
 
 @bp.before_request
