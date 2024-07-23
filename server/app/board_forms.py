@@ -21,3 +21,8 @@ class RemoveUserForm(FlaskForm):
     Form for removing a user invite from a page.
     """
     remove_user = StringField('RemoveUsername', validators=[DataRequired(), Length(min=2, max=20)])
+
+
+class PageCreateForm(FlaskForm):
+    encrypted_title = StringField('EncryptedTitle', validators=[DataRequired(), Length(max=128)])
+    encrypted_description = StringField('EncryptedDescription', validators=[DataRequired(), Length(max=512)])

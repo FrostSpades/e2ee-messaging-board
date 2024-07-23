@@ -5,10 +5,11 @@ Routes for the dashboard behavior which involves creating pages and showing the 
 @version 2024.7.22
 """
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
-from flask_login import login_required
+from flask_login import login_required, current_user
 from app.account_routes import check_time_since_login as main_check_time_since_login
-from app.board_forms import AddUserForm, RemoveUserForm
-from app.models import User
+from app.board_forms import AddUserForm, RemoveUserForm, PageCreateForm
+from app.models import User, Page, PageUser, Invite
+from app import db
 
 bp = Blueprint('board', __name__)
 
@@ -24,20 +25,23 @@ def dashboard():
     return render_template('dashboard.html', title='Dashboard')
 
 
-@bp.route('/create-page', methods=['GET', 'POST'])
+@bp.route('/create-page', methods=['GET'])
 @login_required
 def create_page():
     """
     Handles page creation.
     :return:
     """
+    # Create forms
     add_user_form = AddUserForm()
     remove_user_form = RemoveUserForm()
+    page_create_form = PageCreateForm()
 
-    return render_template('create_page.html', title='Create Page', add_user_form=add_user_form, remove_user_form=remove_user_form)
+    return render_template('create_page.html', title='Create Page', add_user_form=add_user_form, remove_user_form=remove_user_form, page_create_form=page_create_form)
 
 
 @bp.route('/create-page/add-user', methods=['POST'])
+@login_required
 def add_user():
     """
     Handles inviting users for page through AJAX request.
@@ -45,8 +49,8 @@ def add_user():
     """
     add_user_form = AddUserForm()
     if add_user_form.validate_on_submit():
-        # If user exists, add it to the list of invites
-        if User.query.filter_by(username=add_user_form.new_user.data).first() is not None:
+        # Check if user can be invited
+        if validate_invite(add_user_form.new_user.data):
             # Initialize session if not already initialized
             if "invite_users" not in session:
                 session['invite_users'] = []
@@ -63,7 +67,26 @@ def add_user():
         return jsonify({"success": False, "message": "Invalid data", "invite_users": session['invite_users']})
 
 
+def validate_invite(invite_username):
+    """
+    Helper method for determining if a user can be invited to a page.
+
+    :param invite_username: username of the person to be invited
+    :return: True if user can be invited, false otherwise
+    """
+    # Check if user exists
+    if User.query.filter_by(username=invite_username).first() is None:
+        return False
+
+    # Check if invited username is equal to the current user
+    if invite_username == User.query.filter_by(id=current_user.id).first().username:
+        return False
+
+    return True
+
+
 @bp.route('/create-page/remove-user', methods=['POST'])
+@login_required
 def remove_user():
     """
     Handles removing users for page through AJAX request.
@@ -82,7 +105,36 @@ def remove_user():
         return jsonify({"success": False, "message": "Invalid data", "invite_users": session['invite_users']})
 
 
+@bp.route('/create-page/submit', methods=['POST'])
+@login_required
+def create_page_submit():
+    page_create_form = PageCreateForm()
+
+    if page_create_form.validate_on_submit():
+        # Create the new page
+        new_page = Page(encrypted_title=page_create_form.encrypted_title.data, encrypted_description=page_create_form.encrypted_description.data)
+        db.session.add(new_page)
+        db.session.commit()
+
+        # Add current user to the page
+        page_user_relation = PageUser(page_id=new_page.id, user_id=current_user.id)
+        db.session.add(page_user_relation)
+
+        # Invite users to the page
+        for invited_username in session['invite_users']:
+            invited_user = User.query.filter_by(username=invited_username).first()
+            invite = Invite(page_id=new_page.id, user_id=invited_user.id)
+            db.session.add(invite)
+
+        session['invite_users'] = []
+        db.session.commit()
+        return redirect(url_for('board.dashboard'))
+
+    return redirect(url_for('board.create_page'))
+
+
 @bp.route('/create-page/init-get', methods=['GET'])
+@login_required
 def init_get():
     """
     Returns the objects necessary for page loading.

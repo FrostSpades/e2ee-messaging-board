@@ -10,14 +10,15 @@
     <div class="container">
         <h1>Create a New Page</h1>
         <div class="forms-container">
-            <form id="create-page-form" method="POST" action="{{ url_for('board.create_page') }}">
+            <form id="create-page-form" method="POST" action="{{ url_for('board.create_page_submit') }}">
+                {{ page_create_form.hidden_tag() }}
                 <div class="form-group">
-                    <label for="title">Page Title:</label>
-                    <input type="text" id="title" name="title" placeholder="Enter page title" required>
+                    <label for="encrypted_title">Page Title:</label>
+                    <input type="text" id="encrypted_title" name="encrypted_title" placeholder="Enter page title" required>
                 </div>
                 <div class="form-group">
-                    <label for="description">Page Description:</label>
-                    <textarea id="description" name="description" rows="4" placeholder="Enter page description" required></textarea>
+                    <label for="encrypted_description">Page Description:</label>
+                    <textarea id="encrypted_description" name="encrypted_description" rows="4" placeholder="Enter page description" required></textarea>
                 </div>
                 <div class="form-group">
                     <label for="add_user_list">Currently Invited Users:</label>
@@ -25,7 +26,7 @@
                         <ul id="add_user_list" class="scrollable-list"></ul>
                     </div>
                 </div>
-                <button type="submit">Create Page</button>
+                <button type="submit" onclick="createPage()">Create Page</button>
             </form>
             <div class="add-user-forms">
                 <form id="add-user-form">

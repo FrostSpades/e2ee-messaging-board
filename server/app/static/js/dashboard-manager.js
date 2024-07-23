@@ -58,3 +58,16 @@ function updateScreen(data) {
         }
     }
 }
+
+/**
+ * Method for handling page creation.
+ */
+function createPage() {
+    const form = document.getElementById('create-page-form');
+
+    // TODO: Encrypt the title and description
+    //form.encrypted_title.value = performEncryption();
+    //form.encrypted_description.value = performEncryption();
+
+    form.submit();
+}

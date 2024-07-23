@@ -14,7 +14,7 @@ class User(UserMixin, db.Model):
     """
     Model for the User sql table.
     """
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
@@ -33,7 +33,7 @@ class Post(db.Model):
     """
     Model for the user post sql table.
     """
-    post_id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     encrypted_title = db.Column(db.String(120), nullable=False)
     encrypted_message = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -44,8 +44,8 @@ class Page(db.Model):
     """
     Model for the page sql table.
     """
-    id = db.Column(db.Integer, primary_key=True)
-    encrypted_title = db.Column(db.String(120), nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    encrypted_title = db.Column(db.String(128), nullable=False)
     encrypted_description = db.Column(db.Text, nullable=True)
     posts = db.relationship('Post', backref='page', lazy=True)
     users = db.relationship('User', secondary='page_user', backref='pages')
@@ -58,3 +58,12 @@ class PageUser(db.Model):
     __tablename__ = 'page_user'
     page_id = db.Column(db.Integer, db.ForeignKey('page.id'), primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+
+
+class Invite(db.Model):
+    """
+    Model for storing page invitations
+    """
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    page_id = db.Column(db.Integer, db.ForeignKey('page.id'), nullable=False)
