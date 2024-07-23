@@ -81,7 +81,7 @@ def register():
         return render_template('register.html', title='Register', form=form)
 
 
-@bp.route('/logout')
+@bp.route('/logout', methods=['post'])
 def logout():
     """
     Logs the user out.

@@ -14,8 +14,11 @@
                 <li><a href="/pages">Pages</a></li>
                 <li><a href="/create-page">Create Page</a></li>
                 <li><a href="/profile">Profile</a></li>
-                <li><a href="/logout">Logout</a></li>
             </ul>
+            <form action="{{ url_for('account.logout') }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit">Logout</button>
+            </form>
         </nav>
     </div>
     <main>
