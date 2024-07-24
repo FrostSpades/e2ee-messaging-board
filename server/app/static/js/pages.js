@@ -7,7 +7,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 function updateScreen(data) {
-    pages = [];
+    // Do not update the screen if request was unsuccessful
+    if (!data["success"]) {
+        return
+    }
+
+    let pages = [];
 
     // Add the page data
     for (let i = 0; i < data['page_ids'].length; i++) {
@@ -39,6 +44,7 @@ function updateTable(pages) {
         let viewButton = document.createElement('a');
         viewButton.textContent = 'View';
         viewButton.className = 'btn btn-sm btn-info';
+        viewButton.href = '/page/' + page.id;
         tdActions.appendChild(viewButton);
         tr.appendChild(tdActions);
 

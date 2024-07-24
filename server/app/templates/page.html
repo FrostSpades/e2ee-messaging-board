@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ page.title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="left-col col-md-8">
+                <div class="page-header">
+                    <h1>{{ page.encrypted_title }}</h1>
+                    <p class="page-description">{{ page.encrypted_description }}</p>
+                </div>
+                <div id="posts" class="posts">
+                </div>
+            </div>
+            <div class="right-col col-md-4">
+                <div class="add-post-form">
+                    <form id="post-add-form" method="post">
+                        {{ post_add_form.hidden_tag() }}
+                        <div class="form-group">
+                            {{ post_add_form.encrypted_message.label }}
+                            {{ post_add_form.encrypted_message(class_="form-control") }}
+                        </div>
+                        <button type="button" onclick="addPost()">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let page_id = "{{page.id}}";
+    </script>
+    <script src="{{ url_for('static', filename='js/page.js') }}"></script>
+</body>
+</html>
+

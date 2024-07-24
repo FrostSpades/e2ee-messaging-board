@@ -4,12 +4,13 @@ Routes for the page behavior.
 @author Ethan Andrews
 @version 2024.7.22
 """
-from flask import Blueprint, render_template, redirect, url_for, jsonify, session
+from flask import Blueprint, render_template, redirect, url_for, jsonify, session, abort
 from flask_login import login_required, current_user
 from app.account_routes import check_time_since_login as main_check_time_since_login
-from app.page_forms import AddUserForm, RemoveUserForm, PageCreateForm
-from app.models import User, Page, PageUser, Invite
+from app.page_forms import AddUserForm, RemoveUserForm, PageCreateForm, PostCreateForm
+from app.models import User, Page, PageUser, Invite, Post
 from app import db
+from sqlalchemy.orm import joinedload
 
 bp = Blueprint('page', __name__)
 
@@ -51,9 +52,9 @@ def add_user():
             session.update()
             return jsonify({"success": True, "message": "Successfully Added User", "invite_users": session['invite_users']})
         else:
-            return jsonify({"success": False, "message": "Cannot add user", "invite_users": session['invite_users']})
+            return jsonify({"success": False, "message": "Cannot add user"})
     else:
-        return jsonify({"success": False, "message": "Invalid data", "invite_users": session['invite_users']})
+        return jsonify({"success": False, "message": "Invalid data"})
 
 
 def validate_invite(invite_username):
@@ -89,14 +90,19 @@ def remove_user():
             session.update()
             return jsonify({"success": True, "message": "Successfully Removed User", "invite_users": session['invite_users']})
         else:
-            return jsonify({"success": False, "message": "Could Not Remove User", "invite_users": session['invite_users']})
+            return jsonify({"success": False, "message": "Could Not Remove User"})
     else:
-        return jsonify({"success": False, "message": "Invalid data", "invite_users": session['invite_users']})
+        return jsonify({"success": False, "message": "Invalid data"})
 
 
 @bp.route('/create-page/submit', methods=['POST'])
 @login_required
 def create_page_submit():
+    """
+    Page for submitting the created page.
+
+    :return: redirect to dashboard if successfully created, redirect to create_page if unsuccessful
+    """
     page_create_form = PageCreateForm()
 
     if page_create_form.validate_on_submit():
@@ -150,13 +156,84 @@ def pages_init_get():
         page_ids.append(page.id)
         page_titles.append(page.encrypted_title)
 
-    return jsonify({"page_ids": page_ids, "page_titles": page_titles})
+    return jsonify({"success": True, "page_ids": page_ids, "page_titles": page_titles})
 
 
 @bp.route('/pages', methods=['GET'])
 @login_required
 def pages():
-    return render_template('pages.html', title="Pages", pages=[])
+    return render_template('pages.html', title="Pages")
+
+
+@bp.route('/page/<int:page_id>', methods=['GET'])
+@login_required
+def view_page(page_id):
+    post_add_form = PostCreateForm()
+
+    # Query the Database to see if page exists
+    page = Page.query.filter_by(id=page_id).first()
+    if not user_has_access(page):
+        abort(403)
+
+    return render_template('page.html', page=page, post_add_form=post_add_form)
+
+
+def user_has_access(page):
+    """
+    Checks if user can access the page.
+    :param page: the page the user is trying to access
+    :return: true if user can access the page, false otherwise
+    """
+    # Check if page exists
+    if page is None:
+        return False
+
+    # Check if user has access to page
+    if PageUser.query.filter_by(user_id=current_user.id, page_id=page.id).first() is None:
+        return False
+
+    return True
+
+
+@bp.route('/page/<int:page_id>/init-get', methods=['GET'])
+@login_required
+def page_init_get(page_id):
+    # Retrieve all the posts associated with the page
+    all_posts = Post.query.filter_by(page_id=page_id).options(joinedload(Post.user)).all()
+    post_content = []
+    post_user = []
+    for post in all_posts:
+        post_content.append(post.encrypted_message)
+        post_user.append(post.user.username)
+
+    return jsonify({"success": True, "post_content": post_content, "post_user": post_user})
+
+
+@bp.route('/page/<int:page_id>/add-post', methods=['POST'])
+def add_post(page_id):
+    post_add_form = PostCreateForm()
+
+    # Check if user has access to this request
+    if not user_has_access(Page.query.filter_by(id=page_id).first()):
+        abort(403)
+
+    # If post submission was valid, add the post
+    if post_add_form.validate_on_submit():
+        new_post = Post(encrypted_message=post_add_form.encrypted_message.data, user_id=current_user.id, page_id=page_id)
+        db.session.add(new_post)
+        db.session.commit()
+
+        # Retrieve all the posts associated with the page
+        all_posts = Post.query.filter_by(page_id=page_id).options(joinedload(Post.user)).all()
+        post_content = []
+        post_user = []
+        for post in all_posts:
+            post_content.append(post.encrypted_message)
+            post_user.append(post.user.username)
+
+        return jsonify({"success": True, "post_content": post_content, "post_user": post_user})
+
+    return jsonify({"success": False})
 
 
 @bp.before_request

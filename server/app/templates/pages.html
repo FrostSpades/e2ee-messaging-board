@@ -38,6 +38,7 @@
                                 </tr>
                             </thead>
                             <tbody id="pages-tbody">
+                            <!-- Dynamically generate the page list -->
                             </tbody>
                         </table>
                     </div>
@@ -45,10 +46,6 @@
             </main>
         </div>
     </div>
-
-    <script>
-        let pages = {{ pages|tojson }};
-    </script>
 
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>

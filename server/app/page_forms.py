@@ -5,8 +5,8 @@ Forms for the pages part of the application.
 @version 2024.7.14
 """
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
+from wtforms import StringField
+from wtforms.validators import DataRequired, Length
 
 
 class AddUserForm(FlaskForm):
@@ -26,3 +26,7 @@ class RemoveUserForm(FlaskForm):
 class PageCreateForm(FlaskForm):
     encrypted_title = StringField('EncryptedTitle', validators=[DataRequired(), Length(max=128)])
     encrypted_description = StringField('EncryptedDescription', validators=[DataRequired(), Length(max=512)])
+
+
+class PostCreateForm(FlaskForm):
+    encrypted_message = StringField('EncryptedMessage', validators=[DataRequired(), Length(max=2048)])

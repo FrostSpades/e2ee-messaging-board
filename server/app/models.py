@@ -18,6 +18,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
+    posts = db.relationship('Post', backref='user', lazy=True)
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -34,7 +35,6 @@ class Post(db.Model):
     Model for the user post sql table.
     """
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    encrypted_title = db.Column(db.String(120), nullable=False)
     encrypted_message = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     page_id = db.Column(db.Integer, db.ForeignKey('page.id'), nullable=False)
