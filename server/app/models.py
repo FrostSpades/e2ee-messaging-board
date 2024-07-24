@@ -19,6 +19,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     posts = db.relationship('Post', backref='user', lazy=True)
+    invites = db.relationship('Invite', backref='user', lazy=True)
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -49,6 +50,7 @@ class Page(db.Model):
     encrypted_description = db.Column(db.Text, nullable=True)
     posts = db.relationship('Post', backref='page', lazy=True)
     users = db.relationship('User', secondary='page_user', backref='pages')
+    invites = db.relationship('Invite', backref='page', lazy=True)
 
 
 class PageUser(db.Model):

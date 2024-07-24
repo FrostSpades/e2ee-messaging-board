@@ -126,7 +126,7 @@ def create_page_submit():
         db.session.commit()
         return redirect(url_for('dashboard.dashboard'))
 
-    return redirect(url_for('dashboard.create_page'))
+    return redirect(url_for('page.create_page'))
 
 
 @bp.route('/create-page/init-get', methods=['GET'])
@@ -149,14 +149,12 @@ def pages_init_get():
     :return:
     """
     # Extract page information
-    users_pages = User.query.filter_by(id=current_user.id).first().pages
-    page_ids = []
-    page_titles = []
-    for page in users_pages:
-        page_ids.append(page.id)
-        page_titles.append(page.encrypted_title)
+    database_pages = User.query.filter_by(id=current_user.id).first().pages
+    user_pages = []
+    for page in database_pages:
+        user_pages.append({"id": page.id, "title": page.encrypted_title})
 
-    return jsonify({"success": True, "page_ids": page_ids, "page_titles": page_titles})
+    return jsonify({"success": True, "pages": user_pages})
 
 
 @bp.route('/pages', methods=['GET'])
@@ -199,17 +197,16 @@ def user_has_access(page):
 @login_required
 def page_init_get(page_id):
     # Retrieve all the posts associated with the page
-    all_posts = Post.query.filter_by(page_id=page_id).options(joinedload(Post.user)).all()
-    post_content = []
-    post_user = []
-    for post in all_posts:
-        post_content.append(post.encrypted_message)
-        post_user.append(post.user.username)
+    database_posts = Post.query.filter_by(page_id=page_id).options(joinedload(Post.user)).all()
+    posts = []
+    for post in database_posts:
+        posts.append({"message": post.encrypted_message, "user": post.user.username})
 
-    return jsonify({"success": True, "post_content": post_content, "post_user": post_user})
+    return jsonify({"success": True, "posts": posts})
 
 
 @bp.route('/page/<int:page_id>/add-post', methods=['POST'])
+@login_required
 def add_post(page_id):
     post_add_form = PostCreateForm()
 
@@ -224,16 +221,92 @@ def add_post(page_id):
         db.session.commit()
 
         # Retrieve all the posts associated with the page
-        all_posts = Post.query.filter_by(page_id=page_id).options(joinedload(Post.user)).all()
-        post_content = []
-        post_user = []
-        for post in all_posts:
-            post_content.append(post.encrypted_message)
-            post_user.append(post.user.username)
+        database_posts = Post.query.filter_by(page_id=page_id).options(joinedload(Post.user)).all()
+        posts = []
+        for post in database_posts:
+            posts.append({"message": post.encrypted_message, "user": post.user.username})
 
-        return jsonify({"success": True, "post_content": post_content, "post_user": post_user})
+        return jsonify({"success": True, "posts": posts})
 
     return jsonify({"success": False})
+
+
+@bp.route('/pages/invites', methods=['GET'])
+@login_required
+def page_invites():
+    return render_template('page_invites.html')
+
+
+@bp.route('/pages/invites/init-get', methods=['GET'])
+@login_required
+def page_invites_init_get():
+    user_invites = get_invites()
+
+    return jsonify({"success": True, "invites": user_invites})
+
+
+def get_invites():
+    """
+    Helper method for getting the user's invites
+    :return: user's invites
+    """
+    database_invites = Invite.query.filter_by(user_id=current_user.id)
+    user_invites = []
+    for invite in database_invites:
+        user_invites.append({"id": invite.id, "title": invite.page.encrypted_title})
+
+    return user_invites
+
+
+@bp.route("/pages/accept-invite/<int:invite_id>", methods=['POST'])
+@login_required
+def page_accept_invite(invite_id):
+    invite = Invite.query.filter_by(id=invite_id).first()
+
+    # Check if user has access
+    if not user_has_invite(invite):
+        return jsonify({"success": False})
+
+    # Add user to page and remove invite
+    new_page_user = PageUser(user_id=invite.user_id, page_id=invite.page_id)
+    db.session.add(new_page_user)
+    db.session.delete(invite)
+    db.session.commit()
+
+    user_invites = get_invites()
+    return jsonify({"success": True, "invites": user_invites})
+
+
+@bp.route("/pages/decline-invite/<int:invite_id>", methods=['POST'])
+@login_required
+def page_decline_invite(invite_id):
+    invite = Invite.query.filter_by(id=invite_id).first()
+
+    # Check if user has access
+    if not user_has_invite(invite):
+        return jsonify({"success": False})
+
+    # Remove invite
+    db.session.delete(invite)
+    db.session.commit()
+
+    user_invites = get_invites()
+    return jsonify({"success": True, "invites": user_invites})
+
+
+def user_has_invite(invite):
+    """
+    Check if the invite belongs to the user
+    :param invite: the invite
+    :return: true if invite belongs, false otherwise
+    """
+    if invite is None:
+        return False
+
+    if current_user.id != invite.user_id:
+        return False
+
+    return True
 
 
 @bp.before_request

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pages</title>
+    <title>Page Invites</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
@@ -24,10 +24,10 @@
                 <div class="sidebar-sticky">
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link active" href="{{ url_for('page.pages') }}">Home</a>
+                            <a class="nav-link" href="{{ url_for('page.pages') }}">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('page.page_invites') }}">Page Invites</a>
+                            <a class="nav-link active" href="{{ url_for('page.page_invites') }}">Page Invites</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#">Settings</a>
@@ -35,26 +35,23 @@
                     </ul>
                 </div>
             </nav>
-            <main role="main" class="col-md-9 col-lg-10 px-5">
-                <h1 class="h2">Pages</h1>
 
-                <div class="mb-4">
-                    <a href="/create-page" class="btn btn-primary">Create New Page</a>
-                </div>
+            <main role="main" class="col-md-9 col-lg-10 px-5">
+                <h1 class="h2">Page Invites</h1>
 
                 <div class="card mb-4">
-                    <div class="card-header">Your Pages</div>
+                    <div class="card-header">Invitations</div>
                     <div class="card-body">
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Page ID</th>
-                                    <th>Title</th>
+                                    <th>Invite ID</th>
+                                    <th>Page Title</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="pages-tbody">
-                            <!-- Dynamically generate the page list -->
+                            <tbody id="invites-tbody">
+                            <!-- Dynamically generate the invites list -->
                             </tbody>
                         </table>
                     </div>
@@ -62,9 +59,11 @@
             </main>
         </div>
     </div>
+
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-    <script src="{{ url_for('static', filename='js/pages.js') }}"></script>
+    <script>let csrf_token = '{{ csrf_token() }}';</script>
+    <script src="{{ url_for('static', filename='js/page_invites.js') }}"></script>
 </body>
 </html>

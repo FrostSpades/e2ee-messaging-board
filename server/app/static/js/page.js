@@ -31,36 +31,39 @@ function updateScreen(data) {
         return
     }
 
-    const form = document.getElementById('post-add-form');
-    form.encrypted_message.value = "";
+    // If there is new post data, update post data in screen
+    if ('posts' in data) {
+        const form = document.getElementById('post-add-form');
+        form.encrypted_message.value = "";
 
         // Get the posts container
-    const postsContainer = document.getElementById('posts');
+        const postsContainer = document.getElementById('posts');
 
-    // Clear the current posts
-    postsContainer.innerHTML = "";
+        // Clear the current posts
+        postsContainer.innerHTML = "";
 
-    // Loop through the post_content and post_user arrays to create and append new posts
-    for (let i = 0; i < data.post_content.length; i++) {
-        // Create a new div element for each post
-        const postDiv = document.createElement('div');
-        postDiv.classList.add('post');
+        // Loop through the post_content and post_user arrays to create and append new posts
+        data['posts'].forEach(post =>{
+            // Create a new div element for each post
+            const postDiv = document.createElement('div');
+            postDiv.classList.add('post');
 
-        // Create a p element for the post content
-        const postContent = document.createElement('p');
-        postContent.classList.add('post-content');
-        postContent.textContent = data.post_content[i];
+            // Create a p element for the post content
+            const postContent = document.createElement('p');
+            postContent.classList.add('post-content');
+            postContent.textContent = post.message;
 
-        // Create a p element for the post user
-        const postUser = document.createElement('p');
-        postUser.classList.add('post-user');
-        postUser.textContent = `Posted by: ${data.post_user[i]}`;
+            // Create a p element for the post user
+            const postUser = document.createElement('p');
+            postUser.classList.add('post-user');
+            postUser.textContent = `Posted by: ${post.user}`;
 
-        // Append the post content and user to the post div
-        postDiv.appendChild(postContent);
-        postDiv.appendChild(postUser);
+            // Append the post content and user to the post div
+            postDiv.appendChild(postContent);
+            postDiv.appendChild(postUser);
 
-        // Append the post div to the posts container
-        postsContainer.appendChild(postDiv);
+            // Append the post div to the posts container
+            postsContainer.appendChild(postDiv);
+        });
     }
 }
