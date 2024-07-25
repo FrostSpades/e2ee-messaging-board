@@ -32,8 +32,6 @@ def create_app():
     app.register_blueprint(home_routes.bp)
     from . import account_routes
     app.register_blueprint(account_routes.bp)
-    from . import dashboard_routes
-    app.register_blueprint(dashboard_routes.bp)
     from . import page_routes
     app.register_blueprint(page_routes.bp)
 

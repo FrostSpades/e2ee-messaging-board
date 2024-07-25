@@ -4,7 +4,7 @@ Routes for the page behavior.
 @author Ethan Andrews
 @version 2024.7.22
 """
-from flask import Blueprint, render_template, redirect, url_for, jsonify, session, abort
+from flask import Blueprint, render_template, redirect, url_for, jsonify, session, abort, request
 from flask_login import login_required, current_user
 from app.account_routes import check_time_since_login as main_check_time_since_login
 from app.page_forms import AddUserForm, RemoveUserForm, PageCreateForm, PostCreateForm
@@ -124,7 +124,7 @@ def create_page_submit():
         # Clear invited users from the session and commit
         session['invite_users'] = []
         db.session.commit()
-        return redirect(url_for('dashboard.dashboard'))
+        return redirect(url_for('page.page'))
 
     return redirect(url_for('page.create_page'))
 
@@ -307,6 +307,16 @@ def user_has_invite(invite):
         return False
 
     return True
+
+
+@bp.before_request
+def before_request():
+    """
+    Clear certain session items on every non ajax request.
+    :return:
+    """
+    if request.headers.get('X-Requested-With') != 'XMLHttpRequest' and request.method != 'POST':
+        session['invite_users'] = []
 
 
 @bp.before_request
