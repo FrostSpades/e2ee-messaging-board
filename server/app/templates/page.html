@@ -2,51 +2,81 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ page.title }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pages</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <div class="row">
-            <div class="left-col col-md-8">
-                <div class="page-header">
-                    <h1>{{ page.encrypted_title }}</h1>
-                    <p class="page-description">{{ page.encrypted_description }}</p>
-                </div>
-                <div id="posts" class="posts">
-                </div>
+    <div class="container-fluid">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand">Messaging Board</a>
+            <div class="ml-auto">
+                <span class="navbar-text">Welcome, {{ current_user.username }}</span>
+                <form action="{{ url_for('account.logout') }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-outline-secondary ml-2">Logout</button>
+                </form>
             </div>
-            <div class="right-col col-md-4">
-                <div class="add-post-form">
-                    <form id="post-add-form" method="post">
-                        {{ post_add_form.hidden_tag() }}
-                        <div class="form-group">
-                            {{ post_add_form.encrypted_message.label }}
-                            {{ post_add_form.encrypted_message(class_="form-control", onkeydown="cancelEnter(event)") }}
-                        </div>
-                        <button type="button" onclick="addPost()">Submit</button>
-                    </form>
+        </nav>
+
+        <div class="row">
+            <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+                <div class="sidebar-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{{ url_for('page.pages') }}">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('page.page_invites') }}">Page Invites</a>
+                        </li>
+                    </ul>
                 </div>
-                <br>
-                <div class="add-post-form">
-                    <div class="invite-users-form">
-                        <form id="invite-users-form">
-                            {{ add_user_form.hidden_tag() }}
-                            <div class="form-group">
-                                <label>Invite Username</label>
-                                {{ add_user_form.new_user(class_="form-control", placeholder="Invite user", autocomplete="new-user") }}
+            </nav>
+            <main role="main" class="col-md-9 col-lg-10 px-5">
+                <div class="container">
+                    <div class="row">
+                        <div class="left-col col-md-8">
+                            <div class="page-header">
+                                <h1>{{ page.encrypted_title }}</h1>
+                                <p class="page-description">{{ page.encrypted_description }}</p>
                             </div>
-                            <button type="button" onclick="addUser()">Invite</button>
-                        </form>
+                            <div id="posts" class="posts">
+                            </div>
+                        </div>
+                        <div class="right-col col-md-4">
+                            <div class="add-post-form">
+                                <form id="post-add-form" method="post">
+                                    {{ post_add_form.hidden_tag() }}
+                                    <div class="form-group">
+                                        {{ post_add_form.encrypted_message.label }}
+                                        {{ post_add_form.encrypted_message(class_="form-control", onkeydown="cancelEnter(event)") }}
+                                    </div>
+                                    <button type="button" onclick="addPost()">Submit</button>
+                                </form>
+                            </div>
+                            <br>
+                            <div class="add-post-form">
+                                <div class="invite-users-form">
+                                    <form id="invite-users-form">
+                                        {{ add_user_form.hidden_tag() }}
+                                        <div class="form-group">
+                                            <label>Invite Username</label>
+                                            {{ add_user_form.new_user(class_="form-control", placeholder="Invite user", autocomplete="new-user") }}
+                                        </div>
+                                        <button type="button" onclick="addUser()">Invite</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
     </div>
     <script>
         let page_id = "{{page.id}}";
     </script>
-    <script src="{{ url_for('static', filename='js/page.js') }}"></script>
     <script src="{{ url_for('static', filename='js/form-funcs.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/page.js') }}"></script>
 </body>
 </html>

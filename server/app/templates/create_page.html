@@ -26,7 +26,10 @@
                         <ul id="add_user_list" class="scrollable-list"></ul>
                     </div>
                 </div>
-                <button type="submit" onclick="createPage()">Create Page</button>
+                <div class="form-buttons">
+                    <button type="submit" onclick="createPage()">Create Page</button>
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href='{{ url_for('page.pages') }}'">Cancel</button>
+                </div>
             </form>
             <div class="add-user-forms">
                 <form id="add-user-form">
