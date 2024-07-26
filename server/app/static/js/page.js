@@ -22,6 +22,22 @@ function addPost() {
 }
 
 /**
+ * Method for inviting a user to a page
+ */
+function addUser() {
+    const form = document.getElementById('invite-users-form');
+    const form_data = new FormData(form);
+
+    fetch(`/page/${page_id}/invite-user`, {
+        method: 'POST',
+        body: form_data
+    })
+    .then(response => response.json())
+    .then(updateScreen)
+    .catch(error => console.error('Error:', error));
+}
+
+/**
  * Method for updating the screen
  * @param data new screen data
  */
@@ -31,11 +47,12 @@ function updateScreen(data) {
         return
     }
 
+    // Clear the containers
+    document.getElementById('post-add-form').encrypted_message.value = "";
+    document.getElementById('invite-users-form').new_user.value = "";
+
     // If there is new post data, update post data in screen
     if ('posts' in data) {
-        const form = document.getElementById('post-add-form');
-        form.encrypted_message.value = "";
-
         // Get the posts container
         const postsContainer = document.getElementById('posts');
 

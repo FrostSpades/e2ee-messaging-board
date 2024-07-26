@@ -27,6 +27,19 @@
                         <button type="button" onclick="addPost()">Submit</button>
                     </form>
                 </div>
+                <br>
+                <div class="add-post-form">
+                    <div class="invite-users-form">
+                        <form id="invite-users-form">
+                            {{ add_user_form.hidden_tag() }}
+                            <div class="form-group">
+                                <label>Invite Username</label>
+                                {{ add_user_form.new_user(class_="form-control", placeholder="Invite user", autocomplete="new-user") }}
+                            </div>
+                            <button type="button" onclick="addUser()">Invite</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -37,4 +50,3 @@
     <script src="{{ url_for('static', filename='js/form-funcs.js') }}"></script>
 </body>
 </html>
-

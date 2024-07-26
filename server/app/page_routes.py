@@ -57,20 +57,33 @@ def add_user():
         return jsonify({"success": False, "message": "Invalid data"})
 
 
-def validate_invite(invite_username):
+def validate_invite(invite_username, page=None):
     """
-    Helper method for determining if a user can be invited to a page.
+    Helper method for determining if a user can be invited to a page. If page parameter is provided,
+    checks if user can be invited to this specific page.
 
     :param invite_username: username of the person to be invited
+    :param page: page user is to be invited to
     :return: True if user can be invited, false otherwise
     """
+    invited_user = User.query.filter_by(username=invite_username).first()
+
     # Check if user exists
-    if User.query.filter_by(username=invite_username).first() is None:
+    if invited_user is None:
         return False
 
     # Check if invited username is equal to the current user
     if invite_username == User.query.filter_by(id=current_user.id).first().username:
         return False
+
+    if page is not None:
+        # Check if user already is in the page
+        if invited_user in page.users:
+            return False
+
+        # Check if user has already been invited to the page
+        if Invite.query.filter_by(user_id=invited_user.id, page_id=page.id).first() is not None:
+            return False
 
     return True
 
@@ -167,13 +180,14 @@ def pages():
 @login_required
 def view_page(page_id):
     post_add_form = PostCreateForm()
+    add_user_form = AddUserForm()
 
     # Query the Database to see if page exists
     page = Page.query.filter_by(id=page_id).first()
     if not user_has_access(page):
         abort(403)
 
-    return render_template('page.html', page=page, post_add_form=post_add_form)
+    return render_template('page.html', page=page, post_add_form=post_add_form, add_user_form=add_user_form)
 
 
 def user_has_access(page):
@@ -227,6 +241,34 @@ def add_post(page_id):
             posts.append({"message": post.encrypted_message, "user": post.user.username})
 
         return jsonify({"success": True, "posts": posts})
+
+    return jsonify({"success": False})
+
+
+@bp.route('/page/<int:page_id>/invite-user', methods=['POST'])
+@login_required
+def existing_page_invite(page_id):
+    """
+    Adds a user to an existing page.
+
+    :param page_id: id of the page
+    :return: json response
+    """
+    add_user_form = AddUserForm()
+
+    page = Page.query.filter_by(id=page_id).first()
+    if not user_has_access(page):
+        abort(403)
+
+    # Add user to page
+    if add_user_form.validate_on_submit():
+        if validate_invite(add_user_form.new_user.data, page):
+            invited_user = User.query.filter_by(username=add_user_form.new_user.data).first()
+            invite = Invite(page_id=page_id, user_id=invited_user.id)
+            db.session.add(invite)
+            db.session.commit()
+
+            return jsonify({"success": True})
 
     return jsonify({"success": False})
 
