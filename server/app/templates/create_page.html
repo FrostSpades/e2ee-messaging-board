@@ -14,7 +14,7 @@
                 {{ page_create_form.hidden_tag() }}
                 <div class="form-group">
                     <label for="encrypted_title">Page Title:</label>
-                    <input type="text" id="encrypted_title" name="encrypted_title" placeholder="Enter page title" required>
+                    <input type="text" id="encrypted_title" name="encrypted_title" placeholder="Enter page title" onkeydown="cancelEnter(event)" required>
                 </div>
                 <div class="form-group">
                     <label for="encrypted_description">Page Description:</label>
@@ -33,7 +33,7 @@
                     {{ add_user_form.hidden_tag() }}
                     <div class="form-group">
                         <label>Invite Username</label>
-                        {{ add_user_form.new_user(placeholder="Invite user", autocomplete="new-user") }}
+                        {{ add_user_form.new_user(placeholder="Invite user", autocomplete="new-user", onkeydown="cancelEnter(event)") }}
                     </div>
                     <button type="button" onclick="addUser()">Submit</button>
                 </form>
@@ -41,7 +41,7 @@
                     {{ remove_user_form.hidden_tag() }}
                     <div class="form-group">
                         <label>Remove Invited Username</label>
-                        {{ remove_user_form.remove_user(placeholder="Remove Invited user", autocomplete="remove-user") }}
+                        {{ remove_user_form.remove_user(placeholder="Remove Invited user", autocomplete="remove-user", onkeydown="cancelEnter(event)") }}
                     </div>
                     <button type="button" onclick="removeUser()">Submit</button>
                 </form>
@@ -49,5 +49,6 @@
         </div>
     </div>
     <script src="{{ url_for('static', filename='js/create-page.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/form-funcs.js') }}"></script>
 </body>
 </html>

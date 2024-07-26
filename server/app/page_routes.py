@@ -124,7 +124,7 @@ def create_page_submit():
         # Clear invited users from the session and commit
         session['invite_users'] = []
         db.session.commit()
-        return redirect(url_for('page.page'))
+        return redirect(url_for('page.pages'))
 
     return redirect(url_for('page.create_page'))
 

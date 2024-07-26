@@ -76,6 +76,10 @@ def register():
                 flash("Username/Email already registered", "error")
                 return redirect(url_for('account.register'))
 
+        else:
+            flash("Invalid data", "error")
+            return render_template('register.html', title='Register', form=form)
+
     # Show register form if GET request
     else:
         return render_template('register.html', title='Register', form=form)

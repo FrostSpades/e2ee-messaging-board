@@ -22,7 +22,7 @@
                         {{ post_add_form.hidden_tag() }}
                         <div class="form-group">
                             {{ post_add_form.encrypted_message.label }}
-                            {{ post_add_form.encrypted_message(class_="form-control") }}
+                            {{ post_add_form.encrypted_message(class_="form-control", onkeydown="cancelEnter(event)") }}
                         </div>
                         <button type="button" onclick="addPost()">Submit</button>
                     </form>
@@ -34,6 +34,7 @@
         let page_id = "{{page.id}}";
     </script>
     <script src="{{ url_for('static', filename='js/page.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/form-funcs.js') }}"></script>
 </body>
 </html>
 
