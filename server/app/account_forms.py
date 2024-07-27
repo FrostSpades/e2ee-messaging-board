@@ -29,5 +29,5 @@ class LoginForm(FlaskForm):
     Form for logging in.
     """
     email = StringField('Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Password', validators=[DataRequired()])
+    hashed_password = PasswordField('Hashed Password', validators=[DataRequired()])
     submit = SubmitField('Login')

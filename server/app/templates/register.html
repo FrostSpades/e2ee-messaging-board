@@ -9,7 +9,7 @@
 <body>
     <div class="container">
         <h1>Register</h1>
-        <form method="POST">
+        <form method="POST" id="submit_form">
             {{ form.hidden_tag() }}
             <p>{{ form.username.label }} {{ form.username() | e}}</p>
             <p>{{ form.email.label }} {{ form.email() | e}}</p>
@@ -28,5 +28,7 @@
             {% endwith %}
         </form>
     </div>
+    <script src="{{ url_for('static', filename='js/security.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/register.js') }}"></script>
 </body>
 </html>

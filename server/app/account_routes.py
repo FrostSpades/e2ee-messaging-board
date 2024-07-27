@@ -38,7 +38,7 @@ def login():
         return redirect(url_for('page.pages'))
 
     if form.validate_on_submit():
-        if check_credentials(request.form['email'], request.form['password']):
+        if check_credentials(request.form['email'], request.form['hashed_password']):
             # Log the user into the website
             user = User.query.filter_by(email=request.form['email']).first()
             login_user(user)
