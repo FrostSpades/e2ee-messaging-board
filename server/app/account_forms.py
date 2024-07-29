@@ -5,7 +5,7 @@ Forms for the account aspect of the application.
 @version 2024.7.14
 """
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField
+from wtforms import StringField, PasswordField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 
 
@@ -17,7 +17,9 @@ class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
-    submit = SubmitField('Sign Up')
+    public_key = StringField('Public Key', validators=[DataRequired()])
+    encrypted_private_key = StringField('Encrypted Private Key', validators=[DataRequired()])
+    aes_salt = StringField('AES Salt', validators=[DataRequired(), Length(min=16, max=16)])
 
     def validate_username(self, username):
         if username.data == 'admin':
@@ -30,4 +32,3 @@ class LoginForm(FlaskForm):
     """
     email = StringField('Email', validators=[DataRequired(), Email()])
     hashed_password = PasswordField('Hashed Password', validators=[DataRequired()])
-    submit = SubmitField('Login')

@@ -10,6 +10,7 @@ from app.models import User
 from app import db, login_manager
 from flask_login import login_user, logout_user, current_user
 import time
+from app.crypto import generate_salt
 
 bp = Blueprint('account', __name__)
 
@@ -68,7 +69,8 @@ def register():
         if form.validate_on_submit():
             # If user does not exist, create user
             if not user_exists(request.form['username'], request.form['email']):
-                create_user(request.form['username'], request.form['email'], request.form['password'])
+                create_user(form.username.data, form.email.data, form.password.data, form.public_key.data,
+                            form.encrypted_private_key.data, form.aes_salt.data)
 
                 return redirect(url_for('account.login'))
 
@@ -78,11 +80,11 @@ def register():
 
         else:
             flash("Invalid data", "error")
-            return render_template('register.html', title='Register', form=form)
+            return render_template('register.html', title='Register', form=form, salt=generate_salt())
 
     # Show register form if GET request
     else:
-        return render_template('register.html', title='Register', form=form)
+        return render_template('register.html', title='Register', form=form, salt=generate_salt())
 
 
 @bp.route('/logout', methods=['POST'])
@@ -135,16 +137,19 @@ def check_credentials(email, password):
     return user.check_password(password)
 
 
-def create_user(username, email, password):
+def create_user(username, email, password, public_key, encrypted_private_key, aes_salt):
     """
     Creates a new user in the database.
 
     :param username: user's username
     :param email: user's email
     :param password: user's password
+    :param public_key: user's public key
+    :param encrypted_private_key: user's encrypted private key
+    :param aes_salt: user's AES salt
     :return: void
     """
-    new_user = User(username=username, email=email)
+    new_user = User(username=username, email=email, public_key=public_key, encrypted_private_key=encrypted_private_key, aes_salt=aes_salt)
     new_user.set_password(password)
     db.session.add(new_user)
     db.session.commit()

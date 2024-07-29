@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E2EE Application - REGISTER</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -15,7 +16,7 @@
             <p>{{ form.email.label }} {{ form.email() | e}}</p>
             <p>{{ form.password.label }} {{ form.password() | e}}</p>
             <p>{{ form.confirm_password.label }} {{ form.confirm_password() | e}}</p>
-            <p>{{ form.submit() }}</p>
+            <button type="button" onclick="register_user()">Login</button>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
@@ -28,6 +29,9 @@
             {% endwith %}
         </form>
     </div>
+    <script>
+        let salt = "{{ salt }}";
+    </script>
     <script src="{{ url_for('static', filename='js/security.js') }}"></script>
     <script src="{{ url_for('static', filename='js/register.js') }}"></script>
 </body>
