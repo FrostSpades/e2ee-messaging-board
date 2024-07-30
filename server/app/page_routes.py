@@ -159,13 +159,11 @@ def create_page_submit():
 
         # Invite users to the page if they exist in the session
         if session['invite_users']:
-            print("h")
             # Get all the invited users
             invited_users_db = User.query.filter(User.username.in_(session['invite_users'])).all()
 
             # Check if the user submitted data for the invited user and add invites
             for invited_user in invited_users_db:
-                print(invited_user.username)
                 if invited_user.username in requested_invited_users:
                     invite = Invite(page_id=new_page.id, user_id=invited_user.id, encrypted_key=requested_invited_users[invited_user.username])
                     db.session.add(invite)
