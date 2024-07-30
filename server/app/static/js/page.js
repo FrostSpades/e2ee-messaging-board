@@ -44,7 +44,7 @@ function addUser() {
 function updateScreen(data) {
     // If failed, do not update screen
     if (!data['success']) {
-        return
+        return;
     }
 
     // Clear the containers

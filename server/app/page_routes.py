@@ -27,6 +27,9 @@ def create_page():
     remove_user_form = RemoveUserForm()
     page_create_form = PageCreateForm()
 
+    # Clear data
+    session['invite_users'] = []
+
     return render_template('create_page.html', title='Create Page', add_user_form=add_user_form, remove_user_form=remove_user_form, page_create_form=page_create_form)
 
 
@@ -50,7 +53,11 @@ def add_user():
                 session['invite_users'].append(add_user_form.new_user.data)
 
             session.update()
-            return jsonify({"success": True, "message": "Successfully Added User", "invite_users": session['invite_users']})
+
+            # Get the users and public keys
+            users_and_keys = get_users_public_keys(session['invite_users'])
+
+            return jsonify({"success": True, "message": "Successfully Added User", "users": users_and_keys})
         else:
             return jsonify({"success": False, "message": "Cannot add user"})
     else:
@@ -101,11 +108,29 @@ def remove_user():
         if "invite_users" in session and remove_user_form.remove_user.data in session['invite_users']:
             session['invite_users'].remove(remove_user_form.remove_user.data)
             session.update()
-            return jsonify({"success": True, "message": "Successfully Removed User", "invite_users": session['invite_users']})
+
+            # Get the users and keys
+            users_and_keys = get_users_public_keys(session['invite_users'])
+
+            return jsonify({"success": True, "message": "Successfully Removed User", "users": users_and_keys})
         else:
             return jsonify({"success": False, "message": "Could Not Remove User"})
     else:
         return jsonify({"success": False, "message": "Invalid data"})
+
+
+@bp.route('/create-page/get-keys', methods=['GET'])
+@login_required
+def create_page_get_keys():
+    """
+    Returns essential key information for page creation.
+    :return: JSON object
+    """
+    # Get the current user
+    user = User.query.filter_by(id=current_user.id).first()
+
+    # Retrieve the invite keys
+    return jsonify({"success": True, "browser_key": user.browser_encryption_key})
 
 
 @bp.route('/create-page/submit', methods=['POST'])
@@ -125,14 +150,25 @@ def create_page_submit():
         db.session.commit()
 
         # Add current user to the page
-        page_user_relation = PageUser(page_id=new_page.id, user_id=current_user.id)
+        page_user_relation = PageUser(page_id=new_page.id, user_id=current_user.id, encrypted_key=page_create_form.creator_encrypted_key.data)
         db.session.add(page_user_relation)
 
-        # Invite users to the page
-        for invited_username in session['invite_users']:
-            invited_user = User.query.filter_by(username=invited_username).first()
-            invite = Invite(page_id=new_page.id, user_id=invited_user.id)
-            db.session.add(invite)
+        requested_invited_users = {}
+        for user in page_create_form.encrypted_keys.data:
+            requested_invited_users[user['username']] = user['key']
+
+        # Invite users to the page if they exist in the session
+        if session['invite_users']:
+            print("h")
+            # Get all the invited users
+            invited_users_db = User.query.filter(User.username.in_(session['invite_users'])).all()
+
+            # Check if the user submitted data for the invited user and add invites
+            for invited_user in invited_users_db:
+                print(invited_user.username)
+                if invited_user.username in requested_invited_users:
+                    invite = Invite(page_id=new_page.id, user_id=invited_user.id, encrypted_key=requested_invited_users[invited_user.username])
+                    db.session.add(invite)
 
         # Clear invited users from the session and commit
         session['invite_users'] = []
@@ -149,9 +185,27 @@ def create_page_init_get():
     Returns the objects necessary for page loading the create-page html file.
     :return: json representation of necessary page objects
     """
-    # Assuming 'invite_users' is a list of usernames in the session
+    # Retrieve list of usernames in the session
     invite_users = session.get('invite_users', [])
-    return jsonify({"invite_users": invite_users})
+
+    # Retrieve the invited users' public keys
+    users_and_keys = get_users_public_keys(invite_users)
+
+    return jsonify({"users": users_and_keys})
+
+
+def get_users_public_keys(users):
+    # Ensure the usernames list is not empty to avoid unnecessary queries
+    if not users:
+        return []
+
+    # Query the User model for users with usernames in the provided list and retrieve the keys in the same order
+    users = User.query.filter(User.username.in_(users)).all()
+    users_and_keys = []
+    for user in users:
+        users_and_keys.append({"username": user.username, "key": user.public_key})
+
+    return users_and_keys
 
 
 @bp.route('/pages/init-get', methods=['GET'])
@@ -349,16 +403,6 @@ def user_has_invite(invite):
         return False
 
     return True
-
-
-@bp.before_request
-def before_request():
-    """
-    Clear certain session items on every non ajax request.
-    :return:
-    """
-    if request.headers.get('X-Requested-With') != 'XMLHttpRequest' and request.method != 'POST':
-        session['invite_users'] = []
 
 
 @bp.before_request

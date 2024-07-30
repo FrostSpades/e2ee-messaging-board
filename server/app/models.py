@@ -21,6 +21,7 @@ class User(UserMixin, db.Model):
     public_key = db.Column(db.Text, nullable=False)
     encrypted_private_key = db.Column(db.Text, nullable=False)
     aes_salt = db.Column(db.String(16), nullable=False)
+    browser_encryption_key = db.Column(db.Text, nullable=False)
     posts = db.relationship('Post', backref='user', lazy=True)
     invites = db.relationship('Invite', backref='user', lazy=True)
 
@@ -63,7 +64,7 @@ class PageUser(db.Model):
     __tablename__ = 'page_user'
     page_id = db.Column(db.Integer, db.ForeignKey('page.id'), primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
-    encrypted_key = db.Column(db.Text, primary_key=True)
+    encrypted_key = db.Column(db.Text)
 
 
 class Invite(db.Model):

@@ -4,13 +4,13 @@ Routes related to account information and login.
 @author Ethan Andrews
 @version 2024.7.14
 """
-from flask import Blueprint, render_template, session, redirect, url_for, flash, request
+from flask import Blueprint, render_template, session, redirect, url_for, flash, request, jsonify
 from app.account_forms import RegistrationForm, LoginForm
 from app.models import User
 from app import db, login_manager
 from flask_login import login_user, logout_user, current_user
 import time
-from app.crypto import generate_salt
+from app.crypto import generate_salt, generate_aes_key, aes_key_to_string
 
 bp = Blueprint('account', __name__)
 
@@ -25,7 +25,7 @@ def home():
     return render_template('base.html')
 
 
-@bp.route('/login', methods=['GET', 'POST'])
+@bp.route('/login', methods=['GET'])
 def login():
     """
     Handles login page.
@@ -38,19 +38,27 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('page.pages'))
 
+    return render_template('login.html', title='Login', form=form)
+
+
+@bp.route('/login/submit', methods=['POST'])
+def login_submit():
+    form = LoginForm()
+
     if form.validate_on_submit():
         if check_credentials(request.form['email'], request.form['hashed_password']):
             # Log the user into the website
             user = User.query.filter_by(email=request.form['email']).first()
             login_user(user)
             session['last_login_time'] = time.time()
-            return redirect(url_for('page.pages'))
+
+            return jsonify({"success": True, "aes_key": user.browser_encryption_key, "aes_salt": user.aes_salt})
 
         else:
             flash('Invalid username or password', 'error')
-            return redirect(url_for('account.login'))
+            return jsonify({"success": False})
 
-    return render_template('login.html', title='Login', form=form)
+    return jsonify({"success": False})
 
 
 @bp.route('/register', methods=['GET', 'POST'])
@@ -149,7 +157,7 @@ def create_user(username, email, password, public_key, encrypted_private_key, ae
     :param aes_salt: user's AES salt
     :return: void
     """
-    new_user = User(username=username, email=email, public_key=public_key, encrypted_private_key=encrypted_private_key, aes_salt=aes_salt)
+    new_user = User(username=username, email=email, public_key=public_key, encrypted_private_key=encrypted_private_key, aes_salt=aes_salt, browser_encryption_key=aes_key_to_string(generate_aes_key()))
     new_user.set_password(password)
     db.session.add(new_user)
     db.session.commit()

@@ -23,6 +23,25 @@ async function hash(message, iterations = 10000) {
 
 
 /**
+ * Generates a random AES key.
+ * @returns {Promise<CryptoKey>}
+ */
+async function generateAESKey() {
+    // Generate a random AES key
+    const key = await crypto.subtle.generateKey(
+        {
+            name: "AES-CBC",
+            length: 256,
+        },
+        true,
+        ["encrypt", "decrypt"]
+    );
+
+    return key;
+}
+
+
+/**
  * Generates an AES key from a password and salt.
  * @param password the password
  * @param salt the salt
@@ -58,6 +77,44 @@ async function deriveAESKey(password, salt) {
     );
 
     return key;
+}
+
+
+/**
+ * Converts an aes key to a string
+ * @param aesKey the aes key
+ * @returns {Promise<string>}
+ */
+async function aesKeyToString(aesKey) {
+    // Export the AES key to raw format
+    const keyData = await crypto.subtle.exportKey('raw', aesKey);
+
+    // Convert the raw key data to a Base64 string
+    const base64Key = btoa(String.fromCharCode(...new Uint8Array(keyData)));
+
+    return base64Key;
+}
+
+
+/**
+ * Converts an aes key string back to an aes key
+ * @param base64Key the string representation of the aes key
+ * @returns {Promise<CryptoKey|null>}
+ */
+async function stringToAesKey(base64Key) {
+    // Decode the Base64 string to a Uint8Array
+    const keyData = Uint8Array.from(atob(base64Key), c => c.charCodeAt(0));
+
+    // Import the raw key data to create an AES key
+    const aesKey = await crypto.subtle.importKey(
+        'raw',
+        keyData,
+        { name: 'AES-CBC' }, // or 'AES-GCM' depending on your use case
+        true, // Extractable
+        ['encrypt', 'decrypt']
+    );
+
+    return aesKey;
 }
 
 
@@ -148,20 +205,20 @@ async function decryptMessage(key, ivHex, encryptedHex) {
 
 
 /**
- * Generates a randomm RSA public/private key pair
+ * Generates a random RSA public/private key pair
  * @returns {Promise<{privateKey: string, publicKey: string}>}
  */
 async function generateRSAKeyPair() {
     // Generate the key pair
     const keyPair = await window.crypto.subtle.generateKey(
         {
-            name: "RSASSA-PKCS1-v1_5",
+            name: "RSA-OAEP",
             modulusLength: 2048,
             publicExponent: new Uint8Array([1, 0, 1]), // 65537
             hash: { name: "SHA-256" },
         },
         true,
-        ["sign", "verify"]
+        ["encrypt", "decrypt"]
     );
 
     const publicKey = await window.crypto.subtle.exportKey("spki", keyPair.publicKey);
@@ -173,6 +230,12 @@ async function generateRSAKeyPair() {
     };
 }
 
+/**
+ * Converts a key to PEM format.
+ * @param buffer
+ * @param type
+ * @returns {string}
+ */
 function arrayBufferToPem(buffer, type) {
     const binary = String.fromCharCode.apply(null, new Uint8Array(buffer));
     const base64 = window.btoa(binary);
@@ -180,6 +243,11 @@ function arrayBufferToPem(buffer, type) {
     return pem;
 }
 
+/**
+ * Formats the base64 string to add new lines every 64.
+ * @param base64String
+ * @returns {string}
+ */
 function formatBase64(base64String) {
     const lineLength = 64;
     let result = '';
@@ -187,4 +255,88 @@ function formatBase64(base64String) {
         result += base64String.slice(i, i + lineLength) + '\n';
     }
     return result.trim();
+}
+
+/**
+ * Converts a PEM-formatted key to a CryptoKey
+ * @param {string} pem - The PEM-formatted key
+ * @param {string} type - The type of the key ('public' or 'private')
+ * @returns {Promise<CryptoKey>}
+ */
+async function pemToCryptoKey(pem, type) {
+    // Remove the PEM header and footer
+    const pemHeader = `-----BEGIN ${type.toUpperCase()} KEY-----`;
+    const pemFooter = `-----END ${type.toUpperCase()} KEY-----`;
+    const pemContents = pem
+        .replace(pemHeader, '')
+        .replace(pemFooter, '')
+        .replace(/\s+/g, ''); // Remove all whitespace characters
+
+    // Convert the base64 string to a binary string
+    const binaryDerString = window.atob(pemContents);
+
+    // Convert the binary string to an ArrayBuffer
+    const binaryDer = new Uint8Array(binaryDerString.length);
+    for (let i = 0; i < binaryDerString.length; i++) {
+        binaryDer[i] = binaryDerString.charCodeAt(i);
+    }
+
+    // Determine the format and key usages based on the type
+    let format;
+    let keyUsages;
+    if (type === 'public') {
+        format = 'spki';
+        keyUsages = ['encrypt']; // Public key used for encryption in RSA-OAEP
+    } else if (type === 'private') {
+        format = 'pkcs8';
+        keyUsages = ['decrypt']; // Private key used for decryption in RSA-OAEP
+    } else {
+        throw new Error('Invalid key type');
+    }
+
+    // Import the key
+    return await window.crypto.subtle.importKey(
+        format,
+        binaryDer.buffer,
+        {
+            name: "RSA-OAEP",
+            hash: { name: "SHA-256" },
+        },
+        true,
+        keyUsages
+    );
+}
+
+/**
+ * Encrypts a string using an RSA public key and converts the encrypted data to a Base64 string
+ * @param {CryptoKey} publicKey - The RSA public key
+ * @param {string} data - The string data to encrypt
+ * @returns {Promise<string>} - The encrypted data in Base64 format
+ */
+async function encryptWithRSA(publicKey, data) {
+    // Convert the string data to an ArrayBuffer
+    const encoder = new TextEncoder();
+    const dataBuffer = encoder.encode(data);
+
+    // Encrypt the ArrayBuffer
+    const encryptedData = await window.crypto.subtle.encrypt(
+        {
+            name: "RSA-OAEP",
+        },
+        publicKey,
+        dataBuffer
+    );
+
+    // Convert the encrypted ArrayBuffer to a Base64 string
+    return arrayBufferToBase64(encryptedData);
+}
+
+/**
+ * Converts an ArrayBuffer to a Base64 string
+ * @param {ArrayBuffer} buffer - The ArrayBuffer to convert
+ * @returns {string} - The Base64 encoded string
+ */
+function arrayBufferToBase64(buffer) {
+    const binary = String.fromCharCode.apply(null, new Uint8Array(buffer));
+    return window.btoa(binary);
 }

@@ -27,7 +27,7 @@
                     </div>
                 </div>
                 <div class="form-buttons">
-                    <button type="submit" onclick="createPage()">Create Page</button>
+                    <button type="button" onclick="createPage()">Create Page</button>
                     <button type="button" class="btn btn-secondary" onclick="window.location.href='{{ url_for('page.pages') }}'">Cancel</button>
                 </div>
             </form>
@@ -51,6 +51,7 @@
             </div>
         </div>
     </div>
+    <script src="{{ url_for('static', filename='js/security.js') }}"></script>
     <script src="{{ url_for('static', filename='js/create-page.js') }}"></script>
     <script src="{{ url_for('static', filename='js/form-funcs.js') }}"></script>
 </body>
