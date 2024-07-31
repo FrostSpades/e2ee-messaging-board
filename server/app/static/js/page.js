@@ -6,10 +6,33 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
- * Method for adding a post to a page.
+ * Method for starting adding a post to a page.
  */
 function addPost() {
+    fetch(`/page/${page_id}/init-get`)
+    .then(response => response.json())
+    .then(addPostSubmit)
+    .catch(error => console.error('Error:', error));
+}
+
+/**
+ * Finished submitting the form to add a post to a page
+ * @param data
+ */
+async function addPostSubmit(data) {
+    // Check if sessionStorage contains the encrypted user key
+    if (sessionStorage.getItem('key') == null) {
+        // Log out user if not
+        window.location.href = '/logout';
+    }
+
+    // Retrieve the keys
+    let keys = await getKeys(data);
+    let page_key = keys['page_key'];
+
     const form = document.getElementById('post-add-form');
+    form.encrypted_message.value = encryptMessageToString(await encryptMessage(page_key, form.encrypted_message.value));
+
     const form_data = new FormData(form);
 
     fetch(`/page/${page_id}/add-post`, {
@@ -53,18 +76,9 @@ async function updateScreen(data) {
         window.location.href = '/logout';
     }
 
-    // Retrieve the browser key
-    const browser_key = await stringToAesKey(data['browser_key']);
-
-    // Retrieve the encrypted user key from storage and decrypt it using the browser key
-    let user_key = stringToEncryptMessage(sessionStorage.getItem('key'));
-    user_key = await decryptMessage(browser_key, user_key.iv, user_key.encrypted);
-    user_key = await stringToAesKey(user_key);
-
-    // Retrieve aes page key
-    let page_key = data['page_key'];
-    page_key = stringToEncryptMessage(page_key);
-    page_key = await stringToAesKey(await decryptMessage(user_key, page_key.iv, page_key.encrypted));
+    // Retrieve the keys
+    let keys = await getKeys(data);
+    let page_key = keys['page_key'];
 
     // Decrypt title
     let encrypted_title = stringToEncryptMessage(encrypted_title_string);
@@ -89,7 +103,9 @@ async function updateScreen(data) {
         postsContainer.innerHTML = "";
 
         // Loop through the post_content and post_user arrays to create and append new posts
-        data['posts'].forEach(post =>{
+        for (let i = 0; i < data['posts'].length; i++) {
+            let post = data['posts'][i]
+
             // Create a new div element for each post
             const postDiv = document.createElement('div');
             postDiv.classList.add('post');
@@ -97,7 +113,11 @@ async function updateScreen(data) {
             // Create a p element for the post content
             const postContent = document.createElement('p');
             postContent.classList.add('post-content');
-            postContent.textContent = post.message;
+
+            // Decrypt post message
+            let encrypted_post = post['message'];
+            encrypted_post = stringToEncryptMessage(encrypted_post);
+            postContent.textContent = await decryptMessage(page_key, encrypted_post.iv, encrypted_post.encrypted);
 
             // Create a p element for the post user
             const postUser = document.createElement('p');
@@ -110,8 +130,13 @@ async function updateScreen(data) {
 
             // Append the post div to the posts container
             postsContainer.appendChild(postDiv);
-        });
+        }
     }
+
+    // Clear sensitive data
+    data = "";
+    keys = "";
+    page_key = "";
 }
 
 function updateTitle(title, description) {

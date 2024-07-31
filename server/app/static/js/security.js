@@ -340,3 +340,25 @@ function arrayBufferToBase64(buffer) {
     const binary = String.fromCharCode.apply(null, new Uint8Array(buffer));
     return window.btoa(binary);
 }
+
+/**
+ * Returns the keys. Decrypts the stored key using the browser key, and decrypts the page key.
+ * @param data the data containing the keys
+ * @returns {Promise<{page_key: (CryptoKey|null), user_key: (CryptoKey|null), browser_key: (CryptoKey|null)}>}
+ */
+async function getKeys(data) {
+    // Retrieve the browser key
+    const browser_key = await stringToAesKey(data['browser_key']);
+
+    // Retrieve the encrypted user key from storage and decrypt it using the browser key
+    let user_key = stringToEncryptMessage(sessionStorage.getItem('key'));
+    user_key = await decryptMessage(browser_key, user_key.iv, user_key.encrypted);
+    user_key = await stringToAesKey(user_key);
+
+    // Retrieve aes page key
+    let page_key = data['page_key'];
+    page_key = stringToEncryptMessage(page_key);
+    page_key = await stringToAesKey(await decryptMessage(user_key, page_key.iv, page_key.encrypted));
+
+    return {"browser_key": browser_key, "user_key": user_key, "page_key": page_key};
+}
