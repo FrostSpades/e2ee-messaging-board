@@ -61,3 +61,10 @@ class AcceptInviteForm(FlaskForm):
     Form for accepting an invitation to a page.
     """
     encrypted_key = StringField('Key', validators=[DataRequired()])
+
+
+class DeletePageForm(FlaskForm):
+    """
+    Form for deleting a page with a given page id.
+    """
+    page_id = StringField('Page ID', validators=[DataRequired()])

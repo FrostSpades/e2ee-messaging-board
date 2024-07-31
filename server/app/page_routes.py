@@ -7,7 +7,7 @@ Routes for the page behavior.
 from flask import Blueprint, render_template, redirect, url_for, jsonify, session, abort, request
 from flask_login import login_required, current_user
 from app.account_routes import check_time_since_login as main_check_time_since_login
-from app.page_forms import RemoveUserForm, PageCreateForm, PostCreateForm, AcceptInviteForm, UserForm, InviteUserForm
+from app.page_forms import RemoveUserForm, PageCreateForm, PostCreateForm, AcceptInviteForm, UserForm, InviteUserForm, DeletePageForm
 from app.models import User, Page, PageUser, Invite, Post
 from app import db
 from sqlalchemy.orm import joinedload
@@ -215,6 +215,17 @@ def pages_init_get():
     """
     # Extract page information
     user = User.query.filter_by(id=current_user.id).first()
+    user_pages = get_users_pages(user)
+
+    return jsonify({"success": True, "pages": user_pages, "browser_key": user.browser_encryption_key})
+
+
+def get_users_pages(user):
+    """
+    Returns the page information for a given user.
+    :param user: the user
+    :return: the page information
+    """
     user_pages_relationships = user.page_users
     user_pages = []
 
@@ -222,7 +233,7 @@ def pages_init_get():
         page = user_page.page
         user_pages.append({"id": page.id, "title": page.encrypted_title, "key": user_page.encrypted_key})
 
-    return jsonify({"success": True, "pages": user_pages, "browser_key": user.browser_encryption_key})
+    return user_pages
 
 
 @bp.route('/pages', methods=['GET'])
@@ -233,6 +244,43 @@ def pages():
     :return:
     """
     return render_template('pages.html', title="Pages")
+
+
+@bp.route('/pages/<int:page_id>/delete', methods=['POST'])
+def delete_page(page_id):
+    """
+    Deletes the page with the given id.
+    :param page_id:
+    :return:
+    """
+    form = DeletePageForm()
+
+    # Deletes a page and all of its data
+    if form.validate_on_submit():
+        # Remove all the users from the page
+        page_users = PageUser.query.filter_by(page_id=page_id).all()
+        for page_user in page_users:
+            db.session.delete(page_user)
+
+        # Delete all the posts
+        posts = Post.query.filter_by(page_id=page_id).all()
+        for post in posts:
+            db.session.delete(post)
+
+        # Delete the page
+        page = Page.query.filter_by(id=page_id).first()
+        db.session.delete(page)
+
+        # Commit the changes
+        db.session.commit()
+
+        # Extract page information
+        user = User.query.filter_by(id=current_user.id).first()
+        user_pages = get_users_pages(user)
+
+        return jsonify({"success": True, "pages": user_pages, "browser_key": user.browser_encryption_key})
+
+    return jsonify({"success": False})
 
 
 @bp.route('/page/<int:page_id>', methods=['GET'])

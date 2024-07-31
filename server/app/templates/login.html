@@ -7,14 +7,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <div class="container">
+    <div class="login-container">
         <h1>Login to Your E2EE Application</h1>
         <form method="POST" id="submit_form">
             {{ form.hidden_tag() }}
             <p>{{ form.email.label }} {{ form.email(placeholder="Enter Email") }}</p>
             <label for="password">Password</label>
             <input type="password" id="password" name="password">
-            <button type="button" onclick="login_user()">Login</button>
         </form>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -25,6 +24,8 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
+        <button type="button" onclick="login_user()">Login</button>
+        <button type="button" onclick="window.location.href='/'">Cancel</button>
     </div>
     <script src="{{ url_for('static', filename='js/security.js') }}"></script>
     <script src="{{ url_for('static', filename='js/login.js') }}"></script>

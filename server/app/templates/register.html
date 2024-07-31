@@ -8,7 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.js"></script>
 </head>
 <body>
-    <div class="container">
+    <div class="register-container">
         <h1>Register</h1>
         <form method="POST" id="submit_form">
             {{ form.hidden_tag() }}
@@ -16,8 +16,6 @@
             <p>{{ form.email.label }} {{ form.email() | e}}</p>
             <p>{{ form.password.label }} {{ form.password() | e}}</p>
             <p>{{ form.confirm_password.label }} {{ form.confirm_password() | e}}</p>
-            <button type="button" onclick="register_user()">Login</button>
-
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
@@ -28,6 +26,8 @@
                 {% endif %}
             {% endwith %}
         </form>
+        <button type="button" onclick="register_user()">Register</button>
+        <button type="button" onclick="window.location.href='/'">Cancel</button>
     </div>
     <script>
         let salt = "{{ salt }}";

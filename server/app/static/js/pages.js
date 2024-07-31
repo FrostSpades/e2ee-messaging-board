@@ -57,7 +57,7 @@ async function updateScreen(data) {
 }
 
 /**
- * Adds page information to the screen
+ * Adds page to the screen
  * @param tbody the body the information is added to
  * @param page_id the id of the page
  * @param page_title the title of the page
@@ -65,10 +65,13 @@ async function updateScreen(data) {
 function addPage(tbody, page_id, page_title) {
     let tr = document.createElement('tr');
 
+    // Add page id
     let tdId = document.createElement('td');
     tdId.textContent = page_id;
+    tdId.name = "page_id"
     tr.appendChild(tdId);
 
+    // Add page title
     let tdTitle = document.createElement('td');
     let titleLink = document.createElement('a');
     titleLink.textContent = page_title;
@@ -76,12 +79,53 @@ function addPage(tbody, page_id, page_title) {
     tr.appendChild(tdTitle);
 
     let tdActions = document.createElement('td');
+
+    // Add the view button
     let viewButton = document.createElement('a');
     viewButton.textContent = 'View';
     viewButton.className = 'btn btn-sm btn-info';
     viewButton.href = '/page/' + page_id;
     tdActions.appendChild(viewButton);
+
+    // Add the delete button
+    let deleteButton = document.createElement('a');
+    deleteButton.textContent = 'Delete';
+    deleteButton.onclick = deletePage;
+    deleteButton.className = 'btn btn-sm btn-danger';
+    tdActions.appendChild(deleteButton);
+
     tr.appendChild(tdActions);
 
     tbody.appendChild(tr);
+}
+
+/**
+ * Handles page deletion.
+ * @param event
+ */
+function deletePage(event) {
+    const button = event.currentTarget;
+    let tr = button.closest('tr');
+    let page_id = tr.querySelector('td').textContent;
+
+    let form = document.getElementById('delete-page-form');
+
+    //Add the page id to the form
+    let id = document.createElement('input');
+    id.type = "hidden";
+    id.name = "page_id";
+    id.value = page_id;
+
+    form.appendChild(id);
+
+    // Submit the form
+    const form_data = new FormData(form);
+
+    fetch(`/pages/${page_id}/delete`, {
+        method: 'POST',
+        body: form_data
+    })
+    .then(response => response.json())
+    .then(updateScreen)
+    .catch(error => console.error('Error:', error));
 }
