@@ -47,7 +47,7 @@ function removeUser() {
 function updateScreen(data) {
     // Check if sessionStorage contains the encrypted user key
     if (sessionStorage.getItem('key') == null) {
-        // Redirect to log in if the key is not found
+        // Log out user if not
         window.location.href = '/logout';
     }
 

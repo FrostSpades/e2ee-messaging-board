@@ -214,23 +214,35 @@ def pages_init_get():
     :return:
     """
     # Extract page information
-    database_pages = User.query.filter_by(id=current_user.id).first().pages
+    user = User.query.filter_by(id=current_user.id).first()
+    user_pages_relationships = user.page_users
     user_pages = []
-    for page in database_pages:
-        user_pages.append({"id": page.id, "title": page.encrypted_title})
 
-    return jsonify({"success": True, "pages": user_pages})
+    for user_page in user_pages_relationships:
+        page = user_page.page
+        user_pages.append({"id": page.id, "title": page.encrypted_title, "key": user_page.encrypted_key})
+
+    return jsonify({"success": True, "pages": user_pages, "browser_key": user.browser_encryption_key})
 
 
 @bp.route('/pages', methods=['GET'])
 @login_required
 def pages():
+    """
+    Handles the /pages route. Shows the pages the user has access to.
+    :return:
+    """
     return render_template('pages.html', title="Pages")
 
 
 @bp.route('/page/<int:page_id>', methods=['GET'])
 @login_required
 def view_page(page_id):
+    """
+    Shows a specific page with a given page id.
+    :param page_id: the id of the page
+    :return:
+    """
     post_add_form = PostCreateForm()
     add_user_form = AddUserForm()
 

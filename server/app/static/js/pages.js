@@ -5,40 +5,83 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => console.error('Error:', error));
 });
 
-
-function updateScreen(data) {
+/**
+ * Updates the screen
+ * @param data the data given from the request
+ * @returns {Promise<void>}
+ */
+async function updateScreen(data) {
     // Do not update the screen if request was unsuccessful
     if (!data["success"]) {
         return
     }
 
+    // Check if sessionStorage contains the encrypted user key
+    if (sessionStorage.getItem('key') == null) {
+        // Log out user if not
+        window.location.href = '/logout';
+    }
+
     // If request has page data, update pages
     if ('pages' in data) {
+        const browser_key = await stringToAesKey(data['browser_key']);
+
+        // Retrieve the encrypted user key from storage and decrypt it using the browser key
+        let user_key = stringToEncryptMessage(sessionStorage.getItem('key'));
+        user_key = await decryptMessage(browser_key, user_key.iv, user_key.encrypted);
+        user_key = await stringToAesKey(user_key);
+
         let tbody = document.getElementById('pages-tbody');
         tbody.innerHTML = ''; // Clear existing content
 
-        data['pages'].forEach(page => {
-            let tr = document.createElement('tr');
+        // Go through each page and decrypt the titles and show it on screen
+        for (let i = 0; i < data['pages'].length; i++) {
+            let page = data['pages'][i];
 
-            let tdId = document.createElement('td');
-            tdId.textContent = page.id;
-            tr.appendChild(tdId);
+            // Extract page key and decrypt it
+            let encrypted_page_key = stringToEncryptMessage(page['key']);
+            let page_key = await stringToAesKey(await decryptMessage(user_key, encrypted_page_key.iv, encrypted_page_key.encrypted));
 
-            let tdTitle = document.createElement('td');
-            let titleLink = document.createElement('a');
-            titleLink.textContent = page.title;
-            tdTitle.appendChild(titleLink);
-            tr.appendChild(tdTitle);
+            // Decrypt the title
+            const encrypted_page_title = stringToEncryptMessage(page['title']);
+            let page_title = await decryptMessage(page_key, encrypted_page_title.iv, encrypted_page_title.encrypted);
 
-            let tdActions = document.createElement('td');
-            let viewButton = document.createElement('a');
-            viewButton.textContent = 'View';
-            viewButton.className = 'btn btn-sm btn-info';
-            viewButton.href = '/page/' + page.id;
-            tdActions.appendChild(viewButton);
-            tr.appendChild(tdActions);
+            // Add the data to the page
+            addPage(tbody, page['id'], page_title);
+        }
 
-            tbody.appendChild(tr);
-        });
+        // Clear the sensitive data from memory
+        user_key = "";
+        data = "";
     }
+}
+
+/**
+ * Adds page information to the screen
+ * @param tbody the body the information is added to
+ * @param page_id the id of the page
+ * @param page_title the title of the page
+ */
+function addPage(tbody, page_id, page_title) {
+    let tr = document.createElement('tr');
+
+    let tdId = document.createElement('td');
+    tdId.textContent = page_id;
+    tr.appendChild(tdId);
+
+    let tdTitle = document.createElement('td');
+    let titleLink = document.createElement('a');
+    titleLink.textContent = page_title;
+    tdTitle.appendChild(titleLink);
+    tr.appendChild(tdTitle);
+
+    let tdActions = document.createElement('td');
+    let viewButton = document.createElement('a');
+    viewButton.textContent = 'View';
+    viewButton.className = 'btn btn-sm btn-info';
+    viewButton.href = '/page/' + page_id;
+    tdActions.appendChild(viewButton);
+    tr.appendChild(tdActions);
+
+    tbody.appendChild(tr);
 }

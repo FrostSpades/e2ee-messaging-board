@@ -24,6 +24,7 @@ class User(UserMixin, db.Model):
     browser_encryption_key = db.Column(db.Text, nullable=False)
     posts = db.relationship('Post', backref='user', lazy=True)
     invites = db.relationship('Invite', backref='user', lazy=True)
+    page_users = db.relationship('PageUser', backref='user', lazy=True)
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -55,6 +56,7 @@ class Page(db.Model):
     posts = db.relationship('Post', backref='page', lazy=True)
     users = db.relationship('User', secondary='page_user', backref='pages')
     invites = db.relationship('Invite', backref='page', lazy=True)
+    page_users = db.relationship('PageUser', backref='page', lazy=True)
 
 
 class PageUser(db.Model):
