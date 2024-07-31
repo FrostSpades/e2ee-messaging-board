@@ -275,12 +275,27 @@ def user_has_access(page):
 @login_required
 def page_init_get(page_id):
     # Retrieve all the posts associated with the page
+    posts = get_posts(page_id)
+
+    # Retrieve the user and page in order to get key information
+    user = User.query.filter_by(id=current_user.id).first()
+    page_user = next((page_user for page_user in user.page_users if page_user.page_id == page_id), None)
+
+    return jsonify({"success": True, "posts": posts, "browser_key": user.browser_encryption_key, "page_key": page_user.encrypted_key})
+
+
+def get_posts(page_id):
+    """
+    Retrieves the posts associated with a given page.
+    :param page_id: the id of the page
+    :return:
+    """
     database_posts = Post.query.filter_by(page_id=page_id).options(joinedload(Post.user)).all()
     posts = []
     for post in database_posts:
         posts.append({"message": post.encrypted_message, "user": post.user.username})
 
-    return jsonify({"success": True, "posts": posts})
+    return posts
 
 
 @bp.route('/page/<int:page_id>/add-post', methods=['POST'])
@@ -299,12 +314,13 @@ def add_post(page_id):
         db.session.commit()
 
         # Retrieve all the posts associated with the page
-        database_posts = Post.query.filter_by(page_id=page_id).options(joinedload(Post.user)).all()
-        posts = []
-        for post in database_posts:
-            posts.append({"message": post.encrypted_message, "user": post.user.username})
+        posts = get_posts(page_id)
 
-        return jsonify({"success": True, "posts": posts})
+        # Retrieve the user and page in order to get key information
+        user = User.query.filter_by(id=current_user.id).first()
+        page_user = next((page_user for page_user in user.page_users if page_user.page_id == page_id), None)
+
+        return jsonify({"success": True, "posts": posts, "browser_key": user.browser_encryption_key, "page_key": page_user.encrypted_key})
 
     return jsonify({"success": False})
 

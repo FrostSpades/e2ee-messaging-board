@@ -41,11 +41,40 @@ function addUser() {
  * Method for updating the screen
  * @param data new screen data
  */
-function updateScreen(data) {
+async function updateScreen(data) {
     // If failed, do not update screen
     if (!data['success']) {
         return;
     }
+
+    // Check if sessionStorage contains the encrypted user key
+    if (sessionStorage.getItem('key') == null) {
+        // Log out user if not
+        window.location.href = '/logout';
+    }
+
+    // Retrieve the browser key
+    const browser_key = await stringToAesKey(data['browser_key']);
+
+    // Retrieve the encrypted user key from storage and decrypt it using the browser key
+    let user_key = stringToEncryptMessage(sessionStorage.getItem('key'));
+    user_key = await decryptMessage(browser_key, user_key.iv, user_key.encrypted);
+    user_key = await stringToAesKey(user_key);
+
+    // Retrieve aes page key
+    let page_key = data['page_key'];
+    page_key = stringToEncryptMessage(page_key);
+    page_key = await stringToAesKey(await decryptMessage(user_key, page_key.iv, page_key.encrypted));
+
+    // Decrypt title
+    let encrypted_title = stringToEncryptMessage(encrypted_title_string);
+    let title = await decryptMessage(page_key, encrypted_title.iv, encrypted_title.encrypted);
+
+    // Decrypt description
+    let encrypted_description = stringToEncryptMessage(encrypted_description_string);
+    let description = await decryptMessage(page_key, encrypted_description.iv, encrypted_description.encrypted);
+
+    updateTitle(title, description);
 
     // Clear the containers
     document.getElementById('post-add-form').encrypted_message.value = "";
@@ -83,4 +112,20 @@ function updateScreen(data) {
             postsContainer.appendChild(postDiv);
         });
     }
+}
+
+function updateTitle(title, description) {
+    console.log(title);
+    console.log(description);
+
+    // Get the page header element
+    const pageHeader = document.getElementById('page_header');
+
+    // Get the h1 and p elements within the page header
+    const h1 = pageHeader.querySelector('h1');
+    const p = pageHeader.querySelector('p');
+
+    // Update their content
+    h1.textContent = title;
+    p.textContent = description;
 }

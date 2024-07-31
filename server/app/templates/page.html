@@ -36,9 +36,9 @@
                 <div class="container">
                     <div class="row">
                         <div class="left-col col-md-8">
-                            <div class="page-header">
-                                <h1>{{ page.encrypted_title }}</h1>
-                                <p class="page-description">{{ page.encrypted_description }}</p>
+                            <div class="page-header" id="page_header">
+                                <h1></h1>
+                                <p> </p>
                             </div>
                             <div id="posts" class="posts">
                             </div>
@@ -74,9 +74,13 @@
         </div>
     </div>
     <script>
+        let page = "{{ page }}";
+        let encrypted_title_string = "{{ page.encrypted_title }}";
+        let encrypted_description_string = "{{ page.encrypted_description }}";
         let page_id = "{{page.id}}";
     </script>
     <script src="{{ url_for('static', filename='js/form-funcs.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/security.js') }}"></script>
     <script src="{{ url_for('static', filename='js/page.js') }}"></script>
 </body>
 </html>
