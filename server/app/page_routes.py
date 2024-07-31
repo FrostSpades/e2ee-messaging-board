@@ -267,6 +267,11 @@ def delete_page(page_id):
         for post in posts:
             db.session.delete(post)
 
+        # Delete the invites
+        invites = Invite.query.filter_by(page_id=page_id).all()
+        for invite in invites:
+            db.session.delete(invite)
+
         # Delete the page
         page = Page.query.filter_by(id=page_id).first()
         db.session.delete(page)
