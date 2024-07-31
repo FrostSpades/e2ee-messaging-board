@@ -9,11 +9,19 @@ from wtforms import StringField, FieldList, FormField
 from wtforms.validators import DataRequired, Length
 
 
-class AddUserForm(FlaskForm):
+class UserForm(FlaskForm):
+    """
+    Form for submitting a user's username.
+    """
+    new_user = StringField('New Username', validators=[DataRequired(), Length(min=2, max=20)])
+
+
+class InviteUserForm(FlaskForm):
     """
     Form for inviting a user to a page.
     """
     new_user = StringField('New Username', validators=[DataRequired(), Length(min=2, max=20)])
+    encrypted_key = StringField('Key', validators=[DataRequired()])
 
 
 class RemoveUserForm(FlaskForm):

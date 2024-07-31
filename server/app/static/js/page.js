@@ -45,10 +45,53 @@ async function addPostSubmit(data) {
 }
 
 /**
- * Method for inviting a user to a page
+ * Starts the invitation process. Sends a request for the invited user's public keys.
  */
 function addUser() {
     const form = document.getElementById('invite-users-form');
+    const form_data = new FormData(form);
+
+    fetch(`/page/${page_id}/invite-user/request`, {
+        method: 'POST',
+        body: form_data
+    })
+    .then(response => response.json())
+    .then(addUserSubmit)
+    .catch(error => console.error('Error:', error));
+}
+
+/**
+ * Sends an invitation with the encrypted page key, encrypted with the invited user's public key.
+ * @param data
+ */
+async function addUserSubmit(data) {
+    // If the request was not successful, exit method
+    if (!data['success']) {
+        return
+    }
+
+    // Check if sessionStorage contains the encrypted user key
+    if (sessionStorage.getItem('key') == null) {
+        // Log out user if not
+        window.location.href = '/logout';
+    }
+
+    // Get the keys
+    let keys = await getKeys(data['browser_key'], data['encrypted_page_key'], "aes");
+    let public_key = await pemToCryptoKey(data['invite_public_key'], "public");
+
+    // Encrypt the key
+    let encrypted_page_key = await encryptWithRSA(public_key, await aesKeyToString(keys['decrypted_key']));
+
+    // Add the data to the form
+    const form = document.getElementById('invite-users-form');
+    let encrypted_key = document.createElement('input');
+    encrypted_key.name = 'encrypted_key';
+    encrypted_key.type = 'hidden';
+    encrypted_key.value = encrypted_page_key;
+    form.appendChild(encrypted_key);
+
+    // Submit the form
     const form_data = new FormData(form);
 
     fetch(`/page/${page_id}/invite-user`, {
@@ -58,6 +101,13 @@ function addUser() {
     .then(response => response.json())
     .then(updateScreen)
     .catch(error => console.error('Error:', error));
+
+    //Clear the data
+    data = "";
+    keys = "";
+    encrypted_page_key = "";
+    form.new_user.value = "";
+    form.encrypted_key.value = "";
 }
 
 /**
@@ -76,26 +126,26 @@ async function updateScreen(data) {
         window.location.href = '/logout';
     }
 
-    // Retrieve the keys
-    let keys = await getKeys(data['browser_key'], data['page_key'], "aes");
-    let page_key = keys['decrypted_key'];
-
-    // Decrypt title
-    let encrypted_title = stringToEncryptMessage(encrypted_title_string);
-    let title = await decryptMessage(page_key, encrypted_title.iv, encrypted_title.encrypted);
-
-    // Decrypt description
-    let encrypted_description = stringToEncryptMessage(encrypted_description_string);
-    let description = await decryptMessage(page_key, encrypted_description.iv, encrypted_description.encrypted);
-
-    updateTitle(title, description);
-
-    // Clear the containers
-    document.getElementById('post-add-form').encrypted_message.value = "";
-    document.getElementById('invite-users-form').new_user.value = "";
-
     // If there is new post data, update post data in screen
     if ('posts' in data) {
+        // Retrieve the keys
+        let keys = await getKeys(data['browser_key'], data['page_key'], "aes");
+        let page_key = keys['decrypted_key'];
+
+        // Decrypt title
+        let encrypted_title = stringToEncryptMessage(encrypted_title_string);
+        let title = await decryptMessage(page_key, encrypted_title.iv, encrypted_title.encrypted);
+
+        // Decrypt description
+        let encrypted_description = stringToEncryptMessage(encrypted_description_string);
+        let description = await decryptMessage(page_key, encrypted_description.iv, encrypted_description.encrypted);
+
+        updateTitle(title, description);
+
+        // Clear the containers
+        document.getElementById('post-add-form').encrypted_message.value = "";
+        document.getElementById('invite-users-form').new_user.value = "";
+
         // Get the posts container
         const postsContainer = document.getElementById('posts');
 
@@ -140,9 +190,6 @@ async function updateScreen(data) {
 }
 
 function updateTitle(title, description) {
-    console.log(title);
-    console.log(description);
-
     // Get the page header element
     const pageHeader = document.getElementById('page_header');
 

@@ -7,7 +7,7 @@ Routes for the page behavior.
 from flask import Blueprint, render_template, redirect, url_for, jsonify, session, abort, request
 from flask_login import login_required, current_user
 from app.account_routes import check_time_since_login as main_check_time_since_login
-from app.page_forms import AddUserForm, RemoveUserForm, PageCreateForm, PostCreateForm, AcceptInviteForm
+from app.page_forms import RemoveUserForm, PageCreateForm, PostCreateForm, AcceptInviteForm, UserForm, InviteUserForm
 from app.models import User, Page, PageUser, Invite, Post
 from app import db
 from sqlalchemy.orm import joinedload
@@ -23,7 +23,7 @@ def create_page():
     :return:
     """
     # Create forms
-    add_user_form = AddUserForm()
+    add_user_form = UserForm()
     remove_user_form = RemoveUserForm()
     page_create_form = PageCreateForm()
 
@@ -40,7 +40,7 @@ def add_user():
     Handles inviting users for page through AJAX request.
     :return: json object
     """
-    add_user_form = AddUserForm()
+    add_user_form = UserForm()
     if add_user_form.validate_on_submit():
         # Check if user can be invited
         if validate_invite(add_user_form.new_user.data):
@@ -244,7 +244,7 @@ def view_page(page_id):
     :return:
     """
     post_add_form = PostCreateForm()
-    add_user_form = AddUserForm()
+    add_user_form = UserForm()
 
     # Query the Database to see if page exists
     page = Page.query.filter_by(id=page_id).first()
@@ -325,6 +325,29 @@ def add_post(page_id):
     return jsonify({"success": False})
 
 
+@bp.route('/page/<int:page_id>/invite-user/request', methods=['POST'])
+def existing_page_invite_request(page_id):
+    """
+    Requests the invited user's key information.
+    :return:
+    """
+    add_user_form = UserForm()
+
+    page = Page.query.filter_by(id=page_id).first()
+    if not user_has_access(page):
+        abort(403)
+
+    # Add user to page
+    if add_user_form.validate_on_submit():
+        if validate_invite(add_user_form.new_user.data, page):
+            page_user = PageUser.query.filter_by(user_id=current_user.id, page_id=page_id).first()
+            invited_user = User.query.filter_by(username=add_user_form.new_user.data).first()
+
+            return jsonify({"success": True, "invite_public_key": invited_user.public_key, "browser_key": page_user.user.browser_encryption_key, "encrypted_page_key": page_user.encrypted_key})
+
+    return jsonify({"success": False})
+
+
 @bp.route('/page/<int:page_id>/invite-user', methods=['POST'])
 @login_required
 def existing_page_invite(page_id):
@@ -334,17 +357,17 @@ def existing_page_invite(page_id):
     :param page_id: id of the page
     :return: json response
     """
-    add_user_form = AddUserForm()
+    invite_user_form = InviteUserForm()
 
     page = Page.query.filter_by(id=page_id).first()
     if not user_has_access(page):
         abort(403)
 
     # Add user to page
-    if add_user_form.validate_on_submit():
-        if validate_invite(add_user_form.new_user.data, page):
-            invited_user = User.query.filter_by(username=add_user_form.new_user.data).first()
-            invite = Invite(page_id=page_id, user_id=invited_user.id)
+    if invite_user_form.validate_on_submit():
+        if validate_invite(invite_user_form.new_user.data, page):
+            invited_user = User.query.filter_by(username=invite_user_form.new_user.data).first()
+            invite = Invite(page_id=page_id, user_id=invited_user.id, encrypted_key=invite_user_form.encrypted_key.data)
             db.session.add(invite)
             db.session.commit()
 
