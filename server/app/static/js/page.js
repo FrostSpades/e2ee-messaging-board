@@ -27,8 +27,8 @@ async function addPostSubmit(data) {
     }
 
     // Retrieve the keys
-    let keys = await getKeys(data);
-    let page_key = keys['page_key'];
+    let keys = await getKeys(data['browser_key'], data['page_key'], "aes");
+    let page_key = keys['decrypted_key'];
 
     const form = document.getElementById('post-add-form');
     form.encrypted_message.value = encryptMessageToString(await encryptMessage(page_key, form.encrypted_message.value));
@@ -77,8 +77,8 @@ async function updateScreen(data) {
     }
 
     // Retrieve the keys
-    let keys = await getKeys(data);
-    let page_key = keys['page_key'];
+    let keys = await getKeys(data['browser_key'], data['page_key'], "aes");
+    let page_key = keys['decrypted_key'];
 
     // Decrypt title
     let encrypted_title = stringToEncryptMessage(encrypted_title_string);

@@ -7,7 +7,7 @@ Routes for the page behavior.
 from flask import Blueprint, render_template, redirect, url_for, jsonify, session, abort, request
 from flask_login import login_required, current_user
 from app.account_routes import check_time_since_login as main_check_time_since_login
-from app.page_forms import AddUserForm, RemoveUserForm, PageCreateForm, PostCreateForm
+from app.page_forms import AddUserForm, RemoveUserForm, PageCreateForm, PostCreateForm, AcceptInviteForm
 from app.models import User, Page, PageUser, Invite, Post
 from app import db
 from sqlalchemy.orm import joinedload
@@ -362,9 +362,13 @@ def page_invites():
 @bp.route('/pages/invites/init-get', methods=['GET'])
 @login_required
 def page_invites_init_get():
+    # Get invites
     user_invites = get_invites()
 
-    return jsonify({"success": True, "invites": user_invites})
+    # Get user for keys
+    user = User.query.filter_by(id=current_user.id).first()
+
+    return jsonify({"success": True, "invites": user_invites, "encrypted_private_key": user.encrypted_private_key, "browser_key": user.browser_encryption_key})
 
 
 def get_invites():
@@ -375,7 +379,7 @@ def get_invites():
     database_invites = Invite.query.filter_by(user_id=current_user.id)
     user_invites = []
     for invite in database_invites:
-        user_invites.append({"id": invite.id, "title": invite.page.encrypted_title})
+        user_invites.append({"id": invite.id, "title": invite.page.encrypted_title, "key": invite.encrypted_key})
 
     return user_invites
 
@@ -383,20 +387,28 @@ def get_invites():
 @bp.route("/pages/accept-invite/<int:invite_id>", methods=['POST'])
 @login_required
 def page_accept_invite(invite_id):
-    invite = Invite.query.filter_by(id=invite_id).first()
+    form = AcceptInviteForm()
 
-    # Check if user has access
-    if not user_has_invite(invite):
-        return jsonify({"success": False})
+    if form.validate_on_submit():
+        invite = Invite.query.filter_by(id=invite_id).first()
 
-    # Add user to page and remove invite
-    new_page_user = PageUser(user_id=invite.user_id, page_id=invite.page_id)
-    db.session.add(new_page_user)
-    db.session.delete(invite)
-    db.session.commit()
+        # Check if user has access
+        if not user_has_invite(invite):
+            return jsonify({"success": False})
 
-    user_invites = get_invites()
-    return jsonify({"success": True, "invites": user_invites})
+        # Add user to page and remove invite
+        new_page_user = PageUser(user_id=invite.user_id, page_id=invite.page_id, encrypted_key=form.encrypted_key.data)
+        db.session.add(new_page_user)
+        db.session.delete(invite)
+        db.session.commit()
+
+        # Get user for keys
+        user = User.query.filter_by(id=current_user.id).first()
+
+        user_invites = get_invites()
+        return jsonify({"success": True, "invites": user_invites, "encrypted_private_key": user.encrypted_private_key, "browser_key": user.browser_encryption_key})
+
+    return jsonify({"success": False})
 
 
 @bp.route("/pages/decline-invite/<int:invite_id>", methods=['POST'])
@@ -412,8 +424,11 @@ def page_decline_invite(invite_id):
     db.session.delete(invite)
     db.session.commit()
 
+    # Get user for key
+    user = User.query.filter_by(id=current_user.id).first()
+
     user_invites = get_invites()
-    return jsonify({"success": True, "invites": user_invites})
+    return jsonify({"success": True, "invites": user_invites, "encrypted_private_key": user.encrypted_private_key, "browser_key": user.browser_encryption_key})
 
 
 def user_has_invite(invite):

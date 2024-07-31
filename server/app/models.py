@@ -24,7 +24,8 @@ class User(UserMixin, db.Model):
     browser_encryption_key = db.Column(db.Text, nullable=False)
     posts = db.relationship('Post', backref='user', lazy=True)
     invites = db.relationship('Invite', backref='user', lazy=True)
-    page_users = db.relationship('PageUser', backref='user', lazy=True)
+    page_users = db.relationship('PageUser', back_populates='user', lazy=True)
+    pages = db.relationship('Page', secondary='page_user', back_populates='users', overlaps="page_users")
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -54,9 +55,9 @@ class Page(db.Model):
     encrypted_title = db.Column(db.String(128), nullable=False)
     encrypted_description = db.Column(db.Text, nullable=False)
     posts = db.relationship('Post', backref='page', lazy=True)
-    users = db.relationship('User', secondary='page_user', backref='pages')
+    users = db.relationship('User', secondary='page_user', back_populates='pages', overlaps="page_users")
     invites = db.relationship('Invite', backref='page', lazy=True)
-    page_users = db.relationship('PageUser', backref='page', lazy=True)
+    page_users = db.relationship('PageUser', back_populates='page', lazy=True)
 
 
 class PageUser(db.Model):
@@ -67,6 +68,8 @@ class PageUser(db.Model):
     page_id = db.Column(db.Integer, db.ForeignKey('page.id'), primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     encrypted_key = db.Column(db.Text)
+    user = db.relationship('User', back_populates='page_users', overlaps="pages")
+    page = db.relationship('Page', back_populates='page_users', overlaps="users")
 
 
 class Invite(db.Model):

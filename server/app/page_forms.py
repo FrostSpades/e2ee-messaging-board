@@ -24,11 +24,17 @@ class RemoveUserForm(FlaskForm):
 
 
 class KeyForm(FlaskForm):
+    """
+    Form for linking usernames and keys
+    """
     username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
     key = StringField('Key', validators=[DataRequired()])
 
 
 class PageCreateForm(FlaskForm):
+    """
+    Form for creating a page.
+    """
     encrypted_title = StringField('Encrypted Title', validators=[DataRequired(), Length(max=128)])
     encrypted_description = StringField('Encrypted Description', validators=[DataRequired(), Length(max=512)])
     creator_encrypted_key = StringField('Key', validators=[DataRequired()])
@@ -36,4 +42,14 @@ class PageCreateForm(FlaskForm):
 
 
 class PostCreateForm(FlaskForm):
+    """
+    Form for creating a post.
+    """
     encrypted_message = StringField('Encrypted Message', validators=[DataRequired(), Length(max=2048)])
+
+
+class AcceptInviteForm(FlaskForm):
+    """
+    Form for accepting an invitation to a page.
+    """
+    encrypted_key = StringField('Key', validators=[DataRequired()])

@@ -342,23 +342,73 @@ function arrayBufferToBase64(buffer) {
 }
 
 /**
- * Returns the keys. Decrypts the stored key using the browser key, and decrypts the page key.
- * @param data the data containing the keys
- * @returns {Promise<{page_key: (CryptoKey|null), user_key: (CryptoKey|null), browser_key: (CryptoKey|null)}>}
+ * Converts a Base64 string to an ArrayBuffer
+ * @param {string} base64 - The Base64 string
+ * @returns {ArrayBuffer}
  */
-async function getKeys(data) {
+function base64ToArrayBuffer(base64) {
+    const binaryString = window.atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
+/**
+ * Decrypts a Base64-encoded string using an RSA private key
+ * @param {CryptoKey} privateKey - The RSA private key
+ * @param {string} encryptedData - The encrypted data in Base64 format
+ * @returns {Promise<string>} - The decrypted string
+ */
+async function decryptWithRSA(privateKey, encryptedData) {
+    // Convert the Base64 string to an ArrayBuffer
+    const encryptedBuffer = base64ToArrayBuffer(encryptedData);
+
+    // Decrypt the ArrayBuffer
+    const decryptedBuffer = await window.crypto.subtle.decrypt(
+        {
+            name: "RSA-OAEP",
+        },
+        privateKey,
+        encryptedBuffer
+    );
+
+    // Convert the decrypted ArrayBuffer to a string
+    const decoder = new TextDecoder();
+    return decoder.decode(decryptedBuffer);
+}
+
+/**
+ * Returns the keys. Decrypts the stored key using the browser key, and decrypts the encrypted key.
+ * @param browser_key_string the browser key string
+ * @param encrypted_key_string the encrypted key string
+ * @param encrypted_key_type the type of the encrypted key
+ * @returns {Promise<{user_key: (CryptoKey|null), browser_key: (CryptoKey|null), decrypted_key: (CryptoKey|null)}>}
+ */
+async function getKeys(browser_key_string, encrypted_key_string, encrypted_key_type) {
     // Retrieve the browser key
-    const browser_key = await stringToAesKey(data['browser_key']);
+    const browser_key = await stringToAesKey(browser_key_string);
 
     // Retrieve the encrypted user key from storage and decrypt it using the browser key
     let user_key = stringToEncryptMessage(sessionStorage.getItem('key'));
     user_key = await decryptMessage(browser_key, user_key.iv, user_key.encrypted);
     user_key = await stringToAesKey(user_key);
 
-    // Retrieve aes page key
-    let page_key = data['page_key'];
-    page_key = stringToEncryptMessage(page_key);
-    page_key = await stringToAesKey(await decryptMessage(user_key, page_key.iv, page_key.encrypted));
+    // Retrieve encrypted key and convert it into the encrypted message
+    let encrypted_key = encrypted_key_string;
+    encrypted_key = stringToEncryptMessage(encrypted_key);
 
-    return {"browser_key": browser_key, "user_key": user_key, "page_key": page_key};
+    // Decrypt the key
+    let decrypted_key;
+    if (encrypted_key_type === "aes") {
+        decrypted_key = await stringToAesKey(await decryptMessage(user_key, encrypted_key.iv, encrypted_key.encrypted));
+    }
+    else if (encrypted_key_type === "rsa") {
+        let decrypted_key_string = await decryptMessage(user_key, encrypted_key.iv, encrypted_key.encrypted);
+        decrypted_key = await pemToCryptoKey(decrypted_key_string, "private");
+    }
+
+    return {"browser_key": browser_key, "user_key": user_key, "decrypted_key": decrypted_key};
 }
