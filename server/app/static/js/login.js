@@ -50,6 +50,6 @@ async function login_complete(data, password) {
     encrypted_aes_key_string = "";
     data = "";
 
-    // Redirect to pages
+    // Redirect to login screen
     window.location.href = '/pages';
 }

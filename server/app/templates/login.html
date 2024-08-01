@@ -9,7 +9,7 @@
 <body>
     <div class="login-container">
         <h1>Login to Your E2EE Application</h1>
-        <form method="POST" id="submit_form">
+        <form id="submit_form">
             {{ form.hidden_tag() }}
             <p>{{ form.email.label }} {{ form.email(placeholder="Enter Email") }}</p>
             <label for="password">Password</label>
