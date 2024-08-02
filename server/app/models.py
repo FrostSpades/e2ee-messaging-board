@@ -24,8 +24,8 @@ class User(UserMixin, db.Model):
     browser_encryption_key = db.Column(db.Text, nullable=False)
     posts = db.relationship('Post', backref='user', lazy=True)
     invites = db.relationship('Invite', backref='user', lazy=True)
-    page_users = db.relationship('PageUser', back_populates='user', lazy=True)
-    pages = db.relationship('Page', secondary='page_user', back_populates='users', overlaps="page_users")
+    user_access = db.relationship('UserAccess', back_populates='user', lazy=True)
+    pages = db.relationship('Page', secondary='page_user', back_populates='users', overlaps="user_access")
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -55,21 +55,21 @@ class Page(db.Model):
     encrypted_title = db.Column(db.String(128), nullable=False)
     encrypted_description = db.Column(db.Text, nullable=False)
     posts = db.relationship('Post', backref='page', lazy=True)
-    users = db.relationship('User', secondary='page_user', back_populates='pages', overlaps="page_users")
+    users = db.relationship('User', secondary='page_user', back_populates='pages', overlaps="user_access")
     invites = db.relationship('Invite', backref='page', lazy=True)
-    page_users = db.relationship('PageUser', back_populates='page', lazy=True)
+    user_access = db.relationship('UserAccess', back_populates='page', lazy=True)
 
 
-class PageUser(db.Model):
+class UserAccess(db.Model):
     """
-    Model for the relational table relating pages and users.
+    Model that signifies which user has access to which page which includes the user's encrypted key to access the page.
     """
     __tablename__ = 'page_user'
     page_id = db.Column(db.Integer, db.ForeignKey('page.id'), primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     encrypted_key = db.Column(db.Text)
-    user = db.relationship('User', back_populates='page_users', overlaps="pages")
-    page = db.relationship('Page', back_populates='page_users', overlaps="users")
+    user = db.relationship('User', back_populates='user_access', overlaps="pages")
+    page = db.relationship('Page', back_populates='user_access', overlaps="users")
 
 
 class Invite(db.Model):

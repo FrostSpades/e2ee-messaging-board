@@ -8,7 +8,7 @@ from flask import Blueprint, render_template, redirect, url_for, jsonify, sessio
 from flask_login import login_required, current_user
 from app.account_routes import check_time_since_login as main_check_time_since_login
 from app.page_forms import RemoveUserForm, PageCreateForm, PostCreateForm, AcceptInviteForm, UserForm, InviteUserForm, DeletePageForm
-from app.models import User, Page, PageUser, Invite, Post
+from app.models import User, Page, UserAccess, Invite, Post
 from app import db
 from sqlalchemy.orm import joinedload
 
@@ -150,8 +150,8 @@ def create_page_submit():
         db.session.commit()
 
         # Add current user to the page
-        page_user_relation = PageUser(page_id=new_page.id, user_id=current_user.id, encrypted_key=page_create_form.creator_encrypted_key.data)
-        db.session.add(page_user_relation)
+        user_access = UserAccess(page_id=new_page.id, user_id=current_user.id, encrypted_key=page_create_form.creator_encrypted_key.data)
+        db.session.add(user_access)
 
         requested_invited_users = {}
         for user in page_create_form.encrypted_keys.data:
@@ -222,14 +222,14 @@ def pages_init_get():
 
 def get_users_pages(user):
     """
-    Returns the page information for a given user.
+    Returns the page information for all the pages a user has access to.
     :param user: the user
     :return: the page information
     """
-    user_pages_relationships = user.page_users
+    user_access_relationships = user.user_access
     user_pages = []
 
-    for user_page in user_pages_relationships:
+    for user_page in user_access_relationships:
         page = user_page.page
         user_pages.append({"id": page.id, "title": page.encrypted_title, "key": user_page.encrypted_key})
 
@@ -258,9 +258,9 @@ def delete_page(page_id):
     # Deletes a page and all of its data
     if form.validate_on_submit():
         # Remove all the users from the page
-        page_users = PageUser.query.filter_by(page_id=page_id).all()
-        for page_user in page_users:
-            db.session.delete(page_user)
+        user_access = UserAccess.query.filter_by(page_id=page_id).all()
+        for user_page in user_access:
+            db.session.delete(user_page)
 
         # Delete all the posts
         posts = Post.query.filter_by(page_id=page_id).all()
@@ -318,7 +318,7 @@ def user_has_access(page):
         return False
 
     # Check if user has access to page
-    if PageUser.query.filter_by(user_id=current_user.id, page_id=page.id).first() is None:
+    if UserAccess.query.filter_by(user_id=current_user.id, page_id=page.id).first() is None:
         return False
 
     return True
@@ -332,9 +332,9 @@ def page_init_get(page_id):
 
     # Retrieve the user and page in order to get key information
     user = User.query.filter_by(id=current_user.id).first()
-    page_user = next((page_user for page_user in user.page_users if page_user.page_id == page_id), None)
+    user_access = next((user_access for user_access in user.user_access if user_access.page_id == page_id), None)
 
-    return jsonify({"success": True, "posts": posts, "browser_key": user.browser_encryption_key, "page_key": page_user.encrypted_key})
+    return jsonify({"success": True, "posts": posts, "browser_key": user.browser_encryption_key, "page_key": user_access.encrypted_key})
 
 
 def get_posts(page_id):
@@ -371,9 +371,9 @@ def add_post(page_id):
 
         # Retrieve the user and page in order to get key information
         user = User.query.filter_by(id=current_user.id).first()
-        page_user = next((page_user for page_user in user.page_users if page_user.page_id == page_id), None)
+        user_access = next((user_access for user_access in user.user_access if user_access.page_id == page_id), None)
 
-        return jsonify({"success": True, "posts": posts, "browser_key": user.browser_encryption_key, "page_key": page_user.encrypted_key})
+        return jsonify({"success": True, "posts": posts, "browser_key": user.browser_encryption_key, "page_key": user_access.encrypted_key})
 
     return jsonify({"success": False})
 
@@ -393,10 +393,10 @@ def existing_page_invite_request(page_id):
     # Add user to page
     if add_user_form.validate_on_submit():
         if validate_invite(add_user_form.new_user.data, page):
-            page_user = PageUser.query.filter_by(user_id=current_user.id, page_id=page_id).first()
+            user_access = UserAccess.query.filter_by(user_id=current_user.id, page_id=page_id).first()
             invited_user = User.query.filter_by(username=add_user_form.new_user.data).first()
 
-            return jsonify({"success": True, "invite_public_key": invited_user.public_key, "browser_key": page_user.user.browser_encryption_key, "encrypted_page_key": page_user.encrypted_key})
+            return jsonify({"success": True, "invite_public_key": invited_user.public_key, "browser_key": user_access.user.browser_encryption_key, "encrypted_page_key": user_access.encrypted_key})
 
     return jsonify({"success": False})
 
@@ -473,8 +473,8 @@ def page_accept_invite(invite_id):
             return jsonify({"success": False})
 
         # Add user to page and remove invite
-        new_page_user = PageUser(user_id=invite.user_id, page_id=invite.page_id, encrypted_key=form.encrypted_key.data)
-        db.session.add(new_page_user)
+        new_user_access = UserAccess(user_id=invite.user_id, page_id=invite.page_id, encrypted_key=form.encrypted_key.data)
+        db.session.add(new_user_access)
         db.session.delete(invite)
         db.session.commit()
 

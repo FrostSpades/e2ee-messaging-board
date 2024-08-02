@@ -182,6 +182,11 @@ async function updateScreen(data) {
             postsContainer.appendChild(postDiv);
         }
     }
+    // Add 'show' class to posts after they are appended
+    const posts = document.querySelectorAll('.post');
+    posts.forEach(post => post.classList.add('show'));
+
+    document.getElementById('posts').scrollIntoView({ behavior: 'smooth' });
 
     // Clear sensitive data
     data = "";

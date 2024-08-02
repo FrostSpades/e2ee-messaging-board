@@ -211,19 +211,94 @@ button.ml-2 {
     padding: 20px;
 }
 
-/* Posts styling */
-.post {
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 10px;
-    margin-bottom: 10px;
+/* Styling for the page header */
+#page_header {
+    background-color: #ffffff; /* White background for a clean look */
+    padding: 20px;
+    border-radius: 10px; /* Slightly more rounded corners */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* More prominent shadow */
+    margin-bottom: 30px; /* Increase space below the header */
+    text-align: center;
+    border: 1px solid #ddd; /* Border to separate from background */
 }
 
-/* Add post form styling */
-.add-post-form {
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 20px;
+/* Enhanced page header text */
+#page_header h1 {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #343a40;
+    margin-bottom: 15px;
+}
+
+#page_header p {
+    font-size: 1.2em;
+    color: #6c757d;
+}
+
+/* Styling for the posts container */
+.posts {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Increase gap between posts */
+}
+
+/* Styling for individual post */
+.post {
+    background-color: #ffffff; /* White background for posts */
+    padding: 20px; /* More padding inside posts */
+    border-radius: 10px; /* Rounded corners for posts */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Shadow for posts */
+    transition: transform 0.3s, box-shadow 0.3s; /* Smoother hover effects */
+    border: 1px solid #ddd; /* Border to separate from background */
+}
+
+.post:hover {
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15); /* More prominent shadow on hover */
+}
+
+.post-content {
+    font-size: 1.2em; /* Increase font size for better readability */
+    color: #495057;
+    margin-bottom: 15px;
+}
+
+.post-user {
+    font-size: 1em; /* Slightly larger font size */
+    color: #868e96;
+    text-align: right;
+    font-style: italic; /* Italicize the username */
+}
+
+.post {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.post.show {
+    opacity: 1;
+}
+
+/* Ensure the navbar is positioned at the very top left */
+.navbar {
+    position: relative; /* Position relative for custom adjustments */
+    top: 0; /* Move the navbar up */
+    left: 0; /* Move the navbar to the left */
+    margin: 0; /* Remove default margin */
+    padding: 0.5rem 1rem; /* Adjust padding if needed */
+}
+
+/* Optional: Remove default Bootstrap margins */
+.navbar-expand-lg {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* If you need to adjust the overall page margins */
+body {
+    margin: 0;
+}
+
+/* Optional: Remove any default padding from the body */
+body {
+    padding: 0;
 }
