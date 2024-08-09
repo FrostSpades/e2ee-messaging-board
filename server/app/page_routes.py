@@ -56,8 +56,9 @@ def add_user():
 
             # Get the users and public keys
             users_and_keys = get_users_public_keys(session['invite_users'])
+            user = User.query.filter(id=current_user.id).first()
 
-            return jsonify({"success": True, "message": "Successfully Added User", "users": users_and_keys})
+            return jsonify({"success": True, "current_username": user.username, "message": "Successfully Added User", "users": users_and_keys})
         else:
             return jsonify({"success": False, "message": "Cannot add user"})
     else:
@@ -111,8 +112,9 @@ def remove_user():
 
             # Get the users and keys
             users_and_keys = get_users_public_keys(session['invite_users'])
+            user = User.query.filter(id=current_user.id).first()
 
-            return jsonify({"success": True, "message": "Successfully Removed User", "users": users_and_keys})
+            return jsonify({"success": True, "current_username": user.username, "message": "Successfully Removed User", "users": users_and_keys})
         else:
             return jsonify({"success": False, "message": "Could Not Remove User"})
     else:
@@ -130,7 +132,7 @@ def create_page_get_keys():
     user = User.query.filter_by(id=current_user.id).first()
 
     # Retrieve the invite keys
-    return jsonify({"success": True, "browser_key": user.browser_encryption_key})
+    return jsonify({"success": True, "current_username": user.username, "browser_key": user.browser_encryption_key})
 
 
 @bp.route('/create-page/submit', methods=['POST'])
@@ -188,8 +190,9 @@ def create_page_init_get():
 
     # Retrieve the invited users' public keys
     users_and_keys = get_users_public_keys(invite_users)
+    user = User.query.filter_by(id=current_user.id).first()
 
-    return jsonify({"users": users_and_keys})
+    return jsonify({"users": users_and_keys, "current_username": user.username})
 
 
 def get_users_public_keys(users):
@@ -217,7 +220,7 @@ def pages_init_get():
     user = User.query.filter_by(id=current_user.id).first()
     user_pages = get_users_pages(user)
 
-    return jsonify({"success": True, "pages": user_pages, "browser_key": user.browser_encryption_key})
+    return jsonify({"success": True, "current_username": user.username, "pages": user_pages, "browser_key": user.browser_encryption_key})
 
 
 def get_users_pages(user):
@@ -283,7 +286,7 @@ def delete_page(page_id):
         user = User.query.filter_by(id=current_user.id).first()
         user_pages = get_users_pages(user)
 
-        return jsonify({"success": True, "pages": user_pages, "browser_key": user.browser_encryption_key})
+        return jsonify({"success": True, "current_username": user.username, "pages": user_pages, "browser_key": user.browser_encryption_key})
 
     return jsonify({"success": False})
 
@@ -334,7 +337,7 @@ def page_init_get(page_id):
     user = User.query.filter_by(id=current_user.id).first()
     user_access = next((user_access for user_access in user.user_access if user_access.page_id == page_id), None)
 
-    return jsonify({"success": True, "posts": posts, "browser_key": user.browser_encryption_key, "page_key": user_access.encrypted_key})
+    return jsonify({"success": True, "posts": posts, "current_username": user.username, "browser_key": user.browser_encryption_key, "page_key": user_access.encrypted_key})
 
 
 def get_posts(page_id):
@@ -373,7 +376,7 @@ def add_post(page_id):
         user = User.query.filter_by(id=current_user.id).first()
         user_access = next((user_access for user_access in user.user_access if user_access.page_id == page_id), None)
 
-        return jsonify({"success": True, "posts": posts, "browser_key": user.browser_encryption_key, "page_key": user_access.encrypted_key})
+        return jsonify({"success": True, "posts": posts, "current_username": user.username, "browser_key": user.browser_encryption_key, "page_key": user_access.encrypted_key})
 
     return jsonify({"success": False})
 
@@ -424,7 +427,9 @@ def existing_page_invite(page_id):
             db.session.add(invite)
             db.session.commit()
 
-            return jsonify({"success": True})
+            user = User.query.filter_by(id=current_user.id).first()
+
+            return jsonify({"success": True, "current_username": user.username})
 
     return jsonify({"success": False})
 
@@ -444,7 +449,7 @@ def page_invites_init_get():
     # Get user for keys
     user = User.query.filter_by(id=current_user.id).first()
 
-    return jsonify({"success": True, "invites": user_invites, "encrypted_private_key": user.encrypted_private_key, "browser_key": user.browser_encryption_key})
+    return jsonify({"success": True, "invites": user_invites, "current_username": user.username, "encrypted_private_key": user.encrypted_private_key, "browser_key": user.browser_encryption_key})
 
 
 def get_invites():
@@ -482,7 +487,7 @@ def page_accept_invite(invite_id):
         user = User.query.filter_by(id=current_user.id).first()
 
         user_invites = get_invites()
-        return jsonify({"success": True, "invites": user_invites, "encrypted_private_key": user.encrypted_private_key, "browser_key": user.browser_encryption_key})
+        return jsonify({"success": True, "invites": user_invites, "current_username": user.username, "encrypted_private_key": user.encrypted_private_key, "browser_key": user.browser_encryption_key})
 
     return jsonify({"success": False})
 
@@ -504,7 +509,7 @@ def page_decline_invite(invite_id):
     user = User.query.filter_by(id=current_user.id).first()
 
     user_invites = get_invites()
-    return jsonify({"success": True, "invites": user_invites, "encrypted_private_key": user.encrypted_private_key, "browser_key": user.browser_encryption_key})
+    return jsonify({"success": True, "invites": user_invites, "current_username": user.username, "encrypted_private_key": user.encrypted_private_key, "browser_key": user.browser_encryption_key})
 
 
 def user_has_invite(invite):

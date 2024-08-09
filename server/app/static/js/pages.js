@@ -16,10 +16,12 @@ async function updateScreen(data) {
         return
     }
 
-    // Check if sessionStorage contains the encrypted user key
-    if (sessionStorage.getItem('key') == null) {
-        // Log out user if not
-        window.location.href = '/logout';
+    // Log out the user if the client does not have the correct user's key
+    if ('current_username' in data) {
+        if (sessionStorage.getItem('key') == null || sessionStorage.getItem('current_username') == null ||
+            sessionStorage.getItem('current_username') !== data['current_username']) {
+            window.location.href = '/logout';
+        }
     }
 
     // If request has page data, update pages

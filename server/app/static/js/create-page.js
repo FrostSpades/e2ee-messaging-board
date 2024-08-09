@@ -51,6 +51,16 @@ function updateScreen(data) {
         window.location.href = '/logout';
     }
 
+    console.log("Working");
+
+    // Log out the user if the client does not have the correct user's key
+    if ('current_username' in data) {
+        if (sessionStorage.getItem('key') == null || sessionStorage.getItem('current_username') == null ||
+            sessionStorage.getItem('current_username') !== data['current_username']) {
+            window.location.href = '/logout';
+        }
+    }
+
     // Update the user list
     if ('users' in data) {
         invited_user_list = data['users'];

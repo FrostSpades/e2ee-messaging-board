@@ -54,6 +54,14 @@ async function updateScreen(data) {
         return
     }
 
+    // Log out the user if the client does not have the correct user's key
+    if ('current_username' in data) {
+        if (sessionStorage.getItem('key') == null || sessionStorage.getItem('current_username') == null ||
+            sessionStorage.getItem('current_username') !== data['current_username']) {
+            window.location.href = '/logout';
+        }
+    }
+
     // Update invites if contained in data
     if ('invites' in data) {
         // Check if sessionStorage contains the encrypted user key

@@ -52,7 +52,7 @@ def login_submit():
             login_user(user)
             session['last_login_time'] = time.time()
 
-            return jsonify({"success": True, "aes_key": user.browser_encryption_key, "aes_salt": user.aes_salt})
+            return jsonify({"success": True, "current_username": user.username, "aes_key": user.browser_encryption_key, "aes_salt": user.aes_salt})
 
         else:
             flash('Invalid username or password', 'error')
@@ -70,10 +70,6 @@ def register():
     form = RegistrationForm()
 
     if request.method == 'POST':
-        # If user is already logged in, redirect to dashboard
-        if current_user.is_authenticated:
-            return redirect(url_for('page.pages'))
-
         if form.validate_on_submit():
             # If user does not exist, create user
             if not user_exists(request.form['username'], request.form['email']):
@@ -92,10 +88,14 @@ def register():
 
     # Show register form if GET request
     else:
+        # If user is already logged in, redirect to dashboard
+        if current_user.is_authenticated:
+            return redirect(url_for('page.pages'))
+
         return render_template('register.html', title='Register', form=form, salt=generate_salt())
 
 
-@bp.route('/logout', methods=['POST'])
+@bp.route('/logout', methods=['GET', 'POST'])
 def logout():
     """
     Logs the user out.

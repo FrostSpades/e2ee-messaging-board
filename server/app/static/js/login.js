@@ -42,6 +42,7 @@ async function login_complete(data, password) {
     let encrypted_aes_key_string = encryptMessageToString(await encryptMessage(browser_key, aes_key));
     // Store the encrypted aes key in session storage
     sessionStorage.setItem('key', encrypted_aes_key_string);
+    sessionStorage.setItem('current_username', data['current_username'])
 
     // Clear sensitive data from memory
     aes_key = "";
@@ -50,6 +51,6 @@ async function login_complete(data, password) {
     encrypted_aes_key_string = "";
     data = "";
 
-    // Redirect to login screen
+    // Redirect to pages screen
     window.location.href = '/pages';
 }
