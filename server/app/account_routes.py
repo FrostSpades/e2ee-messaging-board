@@ -10,7 +10,8 @@ from app.models import User
 from app import db, login_manager
 from flask_login import login_user, logout_user, current_user
 import time
-from app.crypto import generate_salt, generate_aes_key, aes_key_to_string
+from app.crypto import generate_salt, generate_aes_key, aes_key_to_string, aes_encrypt
+import hashlib
 
 bp = Blueprint('account', __name__)
 
@@ -46,9 +47,11 @@ def login_submit():
     form = LoginForm()
 
     if form.validate_on_submit():
-        if check_credentials(request.form['email'], request.form['hashed_password']):
+        email_hash = hashlib.sha256(request.form['email'].encode('utf-8')).hexdigest()
+
+        if check_credentials(email_hash, request.form['hashed_password']):
             # Log the user into the website
-            user = User.query.filter_by(email=request.form['email']).first()
+            user = User.query.filter_by(email_hash=email_hash).first()
             login_user(user)
             session['last_login_time'] = time.time()
 
@@ -71,9 +74,12 @@ def register():
 
     if request.method == 'POST':
         if form.validate_on_submit():
+            encrypted_email = aes_encrypt(request.form['email'])
+            email_hash = hashlib.sha256(request.form['email'].encode('utf-8')).hexdigest()
+
             # If user does not exist, create user
-            if not user_exists(request.form['username'], request.form['email']):
-                create_user(form.username.data, form.email.data, form.password.data, form.public_key.data,
+            if not user_exists(request.form['username'], email_hash):
+                create_user(form.username.data, encrypted_email, email_hash, form.password.data, form.public_key.data,
                             form.encrypted_private_key.data, form.aes_salt.data)
 
                 return redirect(url_for('account.login'))
@@ -117,47 +123,48 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-def user_exists(username, email):
+def user_exists(username, email_hash):
     """
     Checks if a user exists in the database.
     :param username: the user's username
-    :param email: the user's email
+    :param email_hash: the user's hashed email
     :return: true if exists, false otherwise
     """
 
     existing_username = User.query.filter_by(username=username).first()
-    existing_email = User.query.filter_by(email=email).first()
+    existing_email = User.query.filter_by(email_hash=email_hash).first()
+
     return existing_username is not None or existing_email is not None
 
 
-def check_credentials(email, password):
+def check_credentials(email_hash, password):
     """
     Checks if these are valid credentials for a user.
-    :param email: user's email
+    :param email_hash: user's hashed email
     :param password: user's password
     :return: True if the credentials are valid, False otherwise
     """
-
-    user = User.query.filter_by(email=email).first()
+    user = User.query.filter_by(email_hash=email_hash).first()
     if user is None:
         return False
 
     return user.check_password(password)
 
 
-def create_user(username, email, password, public_key, encrypted_private_key, aes_salt):
+def create_user(username, encrypted_email, email_hash, password, public_key, encrypted_private_key, aes_salt):
     """
     Creates a new user in the database.
 
     :param username: user's username
-    :param email: user's email
+    :param encrypted_email: user's encrypted email
+    :param email_hash: user's hashed email
     :param password: user's password
     :param public_key: user's public key
     :param encrypted_private_key: user's encrypted private key
     :param aes_salt: user's AES salt
     :return: void
     """
-    new_user = User(username=username, email=email, public_key=public_key, encrypted_private_key=encrypted_private_key, aes_salt=aes_salt, browser_encryption_key=aes_key_to_string(generate_aes_key()))
+    new_user = User(username=username, encrypted_email=encrypted_email, email_hash=email_hash, public_key=public_key, encrypted_private_key=encrypted_private_key, aes_salt=aes_salt, browser_encryption_key=aes_key_to_string(generate_aes_key()))
     new_user.set_password(password)
     db.session.add(new_user)
     db.session.commit()

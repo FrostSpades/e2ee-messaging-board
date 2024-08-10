@@ -15,7 +15,8 @@ class User(UserMixin, db.Model):
     Model for the User SQL table.
     """
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    email = db.Column(db.String(100), unique=True, nullable=False)
+    encrypted_email = db.Column(db.String(256), unique=True, nullable=False)
+    email_hash = db.Column(db.String(256), nullable=False)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     public_key = db.Column(db.Text, nullable=False)
