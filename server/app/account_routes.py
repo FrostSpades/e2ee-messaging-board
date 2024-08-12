@@ -2,7 +2,7 @@
 Routes related to account information and login.
 
 @author Ethan Andrews
-@version 2024.7.14
+@version 2024.8.12
 """
 from flask import Blueprint, render_template, session, redirect, url_for, flash, request, jsonify
 from app.account_forms import RegistrationForm, LoginForm
@@ -44,12 +44,16 @@ def login():
 
 @bp.route('/login/submit', methods=['POST'])
 def login_submit():
+    """
+    Handles the submission of a login form. Logs the user in if successful.
+    :return:
+    """
     form = LoginForm()
 
     if form.validate_on_submit():
         email_hash = hashlib.sha256(request.form['email'].encode('utf-8')).hexdigest()
 
-        if check_credentials(email_hash, request.form['hashed_password']):
+        if _check_credentials(email_hash, request.form['hashed_password']):
             # Log the user into the website
             user = User.query.filter_by(email_hash=email_hash).first()
             login_user(user)
@@ -59,9 +63,11 @@ def login_submit():
 
         else:
             flash('Invalid username or password', 'error')
-            return jsonify({"success": False})
 
-    return jsonify({"success": False})
+    else:
+        flash('Invalid username or password', 'error')
+
+    return jsonify({"success": False, "flash": True})
 
 
 @bp.route('/register', methods=['GET', 'POST'])
@@ -78,8 +84,8 @@ def register():
             email_hash = hashlib.sha256(request.form['email'].encode('utf-8')).hexdigest()
 
             # If user does not exist, create user
-            if not user_exists(request.form['username'], email_hash):
-                create_user(form.username.data, encrypted_email, email_hash, form.password.data, form.public_key.data,
+            if not _user_exists(request.form['username'], email_hash):
+                _create_user(form.username.data, encrypted_email, email_hash, form.password.data, form.public_key.data,
                             form.encrypted_private_key.data, form.aes_salt.data)
 
                 return redirect(url_for('account.login'))
@@ -89,8 +95,18 @@ def register():
                 return redirect(url_for('account.register'))
 
         else:
-            flash("Invalid data", "error")
-            return render_template('register.html', title='Register', form=form, salt=generate_salt())
+            # Flash only a single error
+            errors = form.errors
+            if 'username' in errors:
+                flash("Invalid username", "error")
+            elif 'email' in errors:
+                flash("Invalid email", "error")
+            elif 'password' in errors:
+                flash("Invalid password", "error")
+            elif 'confirm_password' in errors:
+                flash("Confirm Password must match password", "error")
+
+            return redirect(url_for('account.register'))
 
     # Show register form if GET request
     else:
@@ -123,7 +139,7 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-def user_exists(username, email_hash):
+def _user_exists(username, email_hash):
     """
     Checks if a user exists in the database.
     :param username: the user's username
@@ -137,7 +153,7 @@ def user_exists(username, email_hash):
     return existing_username is not None or existing_email is not None
 
 
-def check_credentials(email_hash, password):
+def _check_credentials(email_hash, password):
     """
     Checks if these are valid credentials for a user.
     :param email_hash: user's hashed email
@@ -151,7 +167,7 @@ def check_credentials(email_hash, password):
     return user.check_password(password)
 
 
-def create_user(username, encrypted_email, email_hash, password, public_key, encrypted_private_key, aes_salt):
+def _create_user(username, encrypted_email, email_hash, password, public_key, encrypted_private_key, aes_salt):
     """
     Creates a new user in the database.
 

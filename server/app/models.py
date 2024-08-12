@@ -2,7 +2,7 @@
 Models for the application.
 
 @author Ethan Andrews
-@version 2024.7.15
+@version 2024.8.12
 """
 
 from app import db
@@ -44,6 +44,7 @@ class Post(db.Model):
     """
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     encrypted_message = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.String(2048), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     page_id = db.Column(db.Integer, db.ForeignKey('page.id'), nullable=False)
 
@@ -54,7 +55,7 @@ class Page(db.Model):
     """
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     encrypted_title = db.Column(db.String(128), nullable=False)
-    encrypted_description = db.Column(db.Text, nullable=False)
+    encrypted_description = db.Column(db.String(8192), nullable=False)
     posts = db.relationship('Post', backref='page', lazy=True)
     invites = db.relationship('Invite', backref='page', lazy=True)
     user_access = db.relationship('UserAccess', back_populates='page', lazy=True, overlaps="users")

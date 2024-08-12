@@ -2,7 +2,7 @@
 Routes related to the homepage.
 
 @author Ethan Andrews
-@version 2024.7.22
+@version 2024.8.12
 """
 from flask import Blueprint, render_template
 

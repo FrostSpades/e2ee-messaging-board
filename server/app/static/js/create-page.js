@@ -51,7 +51,15 @@ function updateScreen(data) {
         window.location.href = '/logout';
     }
 
-    console.log("Working");
+    // If unsuccessful, either refresh the page with the flash message, or do nothing if no flash messages were provided
+    if (!data['success']) {
+        if (data['flash']) {
+            // Refresh
+            window.location.href = '/create-page';
+        } else {
+            return;
+        }
+    }
 
     // Log out the user if the client does not have the correct user's key
     if ('current_username' in data) {

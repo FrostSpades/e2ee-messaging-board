@@ -31,8 +31,14 @@ async function login_user() {
 }
 
 async function login_complete(data, password) {
+    // If unsuccessful, either refresh the page with the flash message, or do nothing if no flash messages were provided
     if (!data['success']) {
-        return;
+        if (data['flash']) {
+            // Refresh
+            window.location.href = '/login';
+        } else {
+            return;
+        }
     }
 
     let aes_key = await aesKeyToString(await deriveAESKey(password, data['aes_salt']));

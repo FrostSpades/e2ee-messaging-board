@@ -2,7 +2,7 @@
 Forms for the pages part of the application.
 
 @author Ethan Andrews
-@version 2024.7.14
+@version 2024.8.12
 """
 from flask_wtf import FlaskForm
 from wtforms import StringField, FieldList, FormField

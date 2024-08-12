@@ -21,7 +21,7 @@
         </nav>
 
         <div class="row">
-            <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+            <nav class="col-md-2 d-none d-md-block bg-light sidebar full-container">
                 <div class="sidebar-sticky">
                     <ul class="nav flex-column">
                         <li class="nav-item">
@@ -57,10 +57,9 @@
             </main>
         </div>
     </div>
-
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <footer>
+        <p style="text-align:center; margin-top: 20px;">&copy; 2024 Ethan Andrews. All rights reserved.</p>
+    </footer>
     <script>let csrf_token = '{{ csrf_token() }}';</script>
     <script src="{{ url_for('static', filename='js/security.js') }}"></script>
     <script src="{{ url_for('static', filename='js/page_invites.js') }}"></script>

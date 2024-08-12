@@ -1,3 +1,10 @@
+"""
+Module for storing the cryptographic methods.
+
+@author Ethan Andrews
+@version 2024.8.12
+"""
+
 import secrets
 import string
 import os

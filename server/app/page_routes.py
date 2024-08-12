@@ -2,15 +2,17 @@
 Routes for the page behavior.
 
 @author Ethan Andrews
-@version 2024.7.22
+@version 2024.8.12
 """
-from flask import Blueprint, render_template, redirect, url_for, jsonify, session, abort, request
+from flask import Blueprint, render_template, redirect, url_for, jsonify, session, abort, flash
 from flask_login import login_required, current_user
 from app.account_routes import check_time_since_login as main_check_time_since_login
 from app.page_forms import RemoveUserForm, PageCreateForm, PostCreateForm, AcceptInviteForm, UserForm, InviteUserForm, DeletePageForm
 from app.models import User, Page, UserAccess, Invite, Post
 from app import db
 from sqlalchemy.orm import joinedload
+from datetime import datetime
+from app.crypto import aes_encrypt, aes_decrypt
 
 bp = Blueprint('page', __name__)
 
@@ -43,7 +45,7 @@ def add_user():
     add_user_form = UserForm()
     if add_user_form.validate_on_submit():
         # Check if user can be invited
-        if validate_invite(add_user_form.new_user.data):
+        if _validate_invite(add_user_form.new_user.data):
             # Initialize session if not already initialized
             if "invite_users" not in session:
                 session['invite_users'] = []
@@ -55,17 +57,16 @@ def add_user():
             session.update()
 
             # Get the users and public keys
-            users_and_keys = get_users_public_keys(session['invite_users'])
-            user = User.query.filter(id=current_user.id).first()
+            users_and_keys = _get_users_public_keys(session['invite_users'])
+            user = User.query.filter_by(id=current_user.id).first()
 
             return jsonify({"success": True, "current_username": user.username, "message": "Successfully Added User", "users": users_and_keys})
-        else:
-            return jsonify({"success": False, "message": "Cannot add user"})
-    else:
-        return jsonify({"success": False, "message": "Invalid data"})
+
+    flash("Cannot add user", "error")
+    return jsonify({"success": False, "flash":True})
 
 
-def validate_invite(invite_username, page=None):
+def _validate_invite(invite_username, page=None):
     """
     Helper method for determining if a user can be invited to a page. If page parameter is provided,
     checks if user can be invited to this specific page.
@@ -111,8 +112,8 @@ def remove_user():
             session.update()
 
             # Get the users and keys
-            users_and_keys = get_users_public_keys(session['invite_users'])
-            user = User.query.filter(id=current_user.id).first()
+            users_and_keys = _get_users_public_keys(session['invite_users'])
+            user = User.query.filter_by(id=current_user.id).first()
 
             return jsonify({"success": True, "current_username": user.username, "message": "Successfully Removed User", "users": users_and_keys})
         else:
@@ -175,6 +176,13 @@ def create_page_submit():
         db.session.commit()
         return redirect(url_for('page.pages'))
 
+    else:
+        # Flash an error
+        if 'encrypted_title' in page_create_form.errors:
+            flash("Title is too long", "error")
+        elif 'encrypted_description' in page_create_form.errors:
+            flash("Description is too long", "error")
+
     return redirect(url_for('page.create_page'))
 
 
@@ -189,13 +197,18 @@ def create_page_init_get():
     invite_users = session.get('invite_users', [])
 
     # Retrieve the invited users' public keys
-    users_and_keys = get_users_public_keys(invite_users)
+    users_and_keys = _get_users_public_keys(invite_users)
     user = User.query.filter_by(id=current_user.id).first()
 
     return jsonify({"users": users_and_keys, "current_username": user.username})
 
 
-def get_users_public_keys(users):
+def _get_users_public_keys(users):
+    """
+    Returns the public keys from a list of users
+    :param users: the list of users
+    :return: a list of dictionaries containing the public keys of the users
+    """
     # Ensure the usernames list is not empty to avoid unnecessary queries
     if not users:
         return []
@@ -218,12 +231,12 @@ def pages_init_get():
     """
     # Extract page information
     user = User.query.filter_by(id=current_user.id).first()
-    user_pages = get_users_pages(user)
+    user_pages = _get_users_pages(user)
 
     return jsonify({"success": True, "current_username": user.username, "pages": user_pages, "browser_key": user.browser_encryption_key})
 
 
-def get_users_pages(user):
+def _get_users_pages(user):
     """
     Returns the page information for all the pages a user has access to.
     :param user: the user
@@ -284,7 +297,7 @@ def delete_page(page_id):
 
         # Extract page information
         user = User.query.filter_by(id=current_user.id).first()
-        user_pages = get_users_pages(user)
+        user_pages = _get_users_pages(user)
 
         return jsonify({"success": True, "current_username": user.username, "pages": user_pages, "browser_key": user.browser_encryption_key})
 
@@ -304,13 +317,13 @@ def view_page(page_id):
 
     # Query the Database to see if page exists
     page = Page.query.filter_by(id=page_id).first()
-    if not user_has_access(page):
+    if not _user_has_access(page):
         abort(403)
 
     return render_template('page.html', page=page, post_add_form=post_add_form, add_user_form=add_user_form)
 
 
-def user_has_access(page):
+def _user_has_access(page):
     """
     Checks if user can access the page.
     :param page: the page the user is trying to access
@@ -331,7 +344,7 @@ def user_has_access(page):
 @login_required
 def page_init_get(page_id):
     # Retrieve all the posts associated with the page
-    posts = get_posts(page_id)
+    posts = _get_posts(page_id)
 
     # Retrieve the user and page in order to get key information
     user = User.query.filter_by(id=current_user.id).first()
@@ -340,7 +353,7 @@ def page_init_get(page_id):
     return jsonify({"success": True, "posts": posts, "current_username": user.username, "browser_key": user.browser_encryption_key, "page_key": user_access.encrypted_key})
 
 
-def get_posts(page_id):
+def _get_posts(page_id):
     """
     Retrieves the posts associated with a given page.
     :param page_id: the id of the page
@@ -348,8 +361,10 @@ def get_posts(page_id):
     """
     database_posts = Post.query.filter_by(page_id=page_id).options(joinedload(Post.user)).all()
     posts = []
+
     for post in database_posts:
-        posts.append({"message": post.encrypted_message, "user": post.user.username})
+        post_created_date_time = aes_decrypt(post.created_at).split()
+        posts.append({"message": post.encrypted_message, "user": post.user.username, "date": post_created_date_time[0], "time": post_created_date_time[1]})
 
     return posts
 
@@ -360,17 +375,21 @@ def add_post(page_id):
     post_add_form = PostCreateForm()
 
     # Check if user has access to this request
-    if not user_has_access(Page.query.filter_by(id=page_id).first()):
+    if not _user_has_access(Page.query.filter_by(id=page_id).first()):
         abort(403)
 
     # If post submission was valid, add the post
     if post_add_form.validate_on_submit():
-        new_post = Post(encrypted_message=post_add_form.encrypted_message.data, user_id=current_user.id, page_id=page_id)
+        # Get and encrypt the current time for the timestamp
+        encrypted_time = aes_encrypt(str(datetime.now()))
+
+        # Add the post to the database
+        new_post = Post(encrypted_message=post_add_form.encrypted_message.data, user_id=current_user.id, page_id=page_id, created_at=encrypted_time)
         db.session.add(new_post)
         db.session.commit()
 
         # Retrieve all the posts associated with the page
-        posts = get_posts(page_id)
+        posts = _get_posts(page_id)
 
         # Retrieve the user and page in order to get key information
         user = User.query.filter_by(id=current_user.id).first()
@@ -390,12 +409,12 @@ def existing_page_invite_request(page_id):
     add_user_form = UserForm()
 
     page = Page.query.filter_by(id=page_id).first()
-    if not user_has_access(page):
+    if not _user_has_access(page):
         abort(403)
 
     # Add user to page
     if add_user_form.validate_on_submit():
-        if validate_invite(add_user_form.new_user.data, page):
+        if _validate_invite(add_user_form.new_user.data, page):
             user_access = UserAccess.query.filter_by(user_id=current_user.id, page_id=page_id).first()
             invited_user = User.query.filter_by(username=add_user_form.new_user.data).first()
 
@@ -416,12 +435,12 @@ def existing_page_invite(page_id):
     invite_user_form = InviteUserForm()
 
     page = Page.query.filter_by(id=page_id).first()
-    if not user_has_access(page):
+    if not _user_has_access(page):
         abort(403)
 
     # Add user to page
     if invite_user_form.validate_on_submit():
-        if validate_invite(invite_user_form.new_user.data, page):
+        if _validate_invite(invite_user_form.new_user.data, page):
             invited_user = User.query.filter_by(username=invite_user_form.new_user.data).first()
             invite = Invite(page_id=page_id, user_id=invited_user.id, encrypted_key=invite_user_form.encrypted_key.data)
             db.session.add(invite)
@@ -444,7 +463,7 @@ def page_invites():
 @login_required
 def page_invites_init_get():
     # Get invites
-    user_invites = get_invites()
+    user_invites = _get_invites()
 
     # Get user for keys
     user = User.query.filter_by(id=current_user.id).first()
@@ -452,7 +471,7 @@ def page_invites_init_get():
     return jsonify({"success": True, "invites": user_invites, "current_username": user.username, "encrypted_private_key": user.encrypted_private_key, "browser_key": user.browser_encryption_key})
 
 
-def get_invites():
+def _get_invites():
     """
     Helper method for getting the user's invites
     :return: user's invites
@@ -474,7 +493,7 @@ def page_accept_invite(invite_id):
         invite = Invite.query.filter_by(id=invite_id).first()
 
         # Check if user has access
-        if not user_has_invite(invite):
+        if not _user_has_invite(invite):
             return jsonify({"success": False})
 
         # Add user to page and remove invite
@@ -486,7 +505,7 @@ def page_accept_invite(invite_id):
         # Get user for keys
         user = User.query.filter_by(id=current_user.id).first()
 
-        user_invites = get_invites()
+        user_invites = _get_invites()
         return jsonify({"success": True, "invites": user_invites, "current_username": user.username, "encrypted_private_key": user.encrypted_private_key, "browser_key": user.browser_encryption_key})
 
     return jsonify({"success": False})
@@ -498,7 +517,7 @@ def page_decline_invite(invite_id):
     invite = Invite.query.filter_by(id=invite_id).first()
 
     # Check if user has access
-    if not user_has_invite(invite):
+    if not _user_has_invite(invite):
         return jsonify({"success": False})
 
     # Remove invite
@@ -508,11 +527,11 @@ def page_decline_invite(invite_id):
     # Get user for key
     user = User.query.filter_by(id=current_user.id).first()
 
-    user_invites = get_invites()
+    user_invites = _get_invites()
     return jsonify({"success": True, "invites": user_invites, "current_username": user.username, "encrypted_private_key": user.encrypted_private_key, "browser_key": user.browser_encryption_key})
 
 
-def user_has_invite(invite):
+def _user_has_invite(invite):
     """
     Check if the invite belongs to the user
     :param invite: the invite

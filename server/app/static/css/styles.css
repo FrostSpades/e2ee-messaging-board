@@ -14,6 +14,13 @@ body {
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
+.full-container {
+    height: 98vh; /* Full height of the viewport */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .login-container {
     max-width: 400px;
     margin: 0 auto;
@@ -242,6 +249,13 @@ button.ml-2 {
     gap: 20px; /* Increase gap between posts */
 }
 
+.post-header {
+    display: flex;
+    justify-content: space-between; /* Aligns child elements to the edges */
+    align-items: center; /* Aligns the items vertically in the center */
+    margin-bottom: 15px; /* Adds space below the header */
+}
+
 /* Styling for individual post */
 .post {
     background-color: #ffffff; /* White background for posts */
@@ -253,29 +267,19 @@ button.ml-2 {
 }
 
 .post:hover {
-    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15); /* More prominent shadow on hover */
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
 }
 
 .post-content {
-    font-size: 1.2em; /* Increase font size for better readability */
+    font-size: 1.2em;
     color: #495057;
     margin-bottom: 15px;
 }
 
-.post-user {
-    font-size: 1em; /* Slightly larger font size */
+.post-user, .post-date-time {
+    font-size: 1em;
     color: #868e96;
-    text-align: right;
-    font-style: italic; /* Italicize the username */
-}
-
-.post {
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out;
-}
-
-.post.show {
-    opacity: 1;
+    font-style: italic;
 }
 
 /* Ensure the navbar is positioned at the very top left */

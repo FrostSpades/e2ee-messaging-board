@@ -171,14 +171,26 @@ async function updateScreen(data) {
             encrypted_post = stringToEncryptMessage(encrypted_post);
             postContent.textContent = await decryptMessage(page_key, encrypted_post.iv, encrypted_post.encrypted);
 
+            // Create a post header to hold the user, date, and time
+            const post_header = document.createElement('div');
+            post_header.classList.add('post-header');
+
             // Create a p element for the post user
-            const postUser = document.createElement('p');
+            const postUser = document.createElement('div');
             postUser.classList.add('post-user');
             postUser.textContent = `Posted by: ${post.user}`;
 
+            // Create a p element for the post time
+            const postDateTime = document.createElement('div');
+            postDateTime.classList.add('post-date-time');
+            postDateTime.textContent = `On ${post.date} at ${post.time}`;
+
+            post_header.appendChild(postUser);
+            post_header.appendChild(postDateTime);
+
             // Append the post content and user to the post div
             postDiv.appendChild(postContent);
-            postDiv.appendChild(postUser);
+            postDiv.appendChild(post_header);
 
             // Append the post div to the posts container
             postsContainer.appendChild(postDiv);
