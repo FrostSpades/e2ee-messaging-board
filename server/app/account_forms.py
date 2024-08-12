@@ -21,8 +21,7 @@ class RegistrationForm(FlaskForm):
     encrypted_private_key = StringField('Encrypted Private Key', validators=[DataRequired()])
     aes_salt = StringField('AES Salt', validators=[DataRequired(), Length(min=16, max=16)])
 
-    @staticmethod
-    def validate_username(username):
+    def validate_username(self, username):
         """
         Checks if a username is valid
         :param username: the username
