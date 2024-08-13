@@ -2,6 +2,7 @@
 A website that serves as a messaging board that utilizes end-to-end encryption.
 
 Contents
+---
 - [Requirements](#requirements)
 - [Installation](#installation-instructions)
 - [Explanation](#explanation)
