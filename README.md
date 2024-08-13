@@ -1,4 +1,4 @@
-# End-to-End Encrypted Messaging Board Application
+# End-to-End Encrypted Messaging Board Website
 A website that serves as a messaging board that utilizes end-to-end encryption.
 
 Contents
@@ -13,8 +13,11 @@ Contents
 - Access to a __MySQL__ database server
 
 ## Installation Instructions
-To install, first download the zip file `e2ee-messaging-boardV2024.8.12.zip`
-Extract the zip file and navigate to the zip file in the terminal/command prompt
+To install, first download the zip file `e2ee-messaging-boardV2024.8.12.zip`.
+Extract the zip file and navigate to the zip file in the terminal/command prompt:
+```
+cd /path/to/directory/
+```
 
 Install the dependencies with:
 ```
@@ -37,7 +40,7 @@ gunicorn -b 0.0.0.0:80 run:app
 ```
 
 ## Explanation
-This application utilizes end-to-end encrypted principles by leveraging asymmetric and symmetric encryption with the server facilitating interactions between clients.
+This website utilizes end-to-end encrypted principles by leveraging asymmetric and symmetric encryption with the server facilitating interactions between clients.
 
 ### Registration Explanation
 Users begin the registration process by creating a password. The server sends the user random salt of length 16 bytes. The client combines their password with the salt to derive an AES key. The client also creates a random public and private RSA key pair, and encrypts the private key with their AES key. To prevent the server from having access to the user's aes key, the client sends the hashed password, instead of the plaintext password, which was hashed 10,000 times to prevent brute force attacks. In total, the client sends the hashed password, the aes salt, their public key, and their encrypted private key to the server for storage. The server saves each of these and also generates a browser encryption AES key for the user.
