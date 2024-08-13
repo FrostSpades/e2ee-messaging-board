@@ -11,13 +11,6 @@ import os
 import base64
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
-from dotenv import load_dotenv
-
-# Load environment variables from the .env file
-load_dotenv()
-
-# Key used for database encryption
-database_key = base64.b64decode(os.environ['DATABASE_KEY'].encode('utf-8'))
 
 
 def generate_salt(length=16):
@@ -55,17 +48,7 @@ def aes_key_to_string(key):
     return base64.b64encode(key).decode('utf-8')
 
 
-def string_to_aes_key(key_string):
-    """
-    Converts a Base64-encoded string back to an AES key (bytes).
-
-    :param key_string: Base64-encoded string representing the AES key.
-    :return: AES key as bytes.
-    """
-    return base64.b64decode(key_string)
-
-
-def aes_encrypt(message, key=database_key):
+def aes_encrypt(message, key):
     """
     Encrypts a message with AES. Default: uses the database key
     :param message: the message to be encrypted
@@ -74,6 +57,9 @@ def aes_encrypt(message, key=database_key):
     """
     # Generate initialization vector
     iv = os.urandom(16)
+
+    # Decode the key string into a key
+    key = base64.b64decode(key.encode('utf-8'))
 
     # Create AES cipher object with key and IV
     cipher = Cipher(algorithms.AES(key), modes.CFB(iv), backend=default_backend())
@@ -89,7 +75,7 @@ def aes_encrypt(message, key=database_key):
     return _encrypted_to_string(iv_encoded, ciphertext_encoded)
 
 
-def aes_decrypt(encrypted_message, key=database_key):
+def aes_decrypt(encrypted_message, key):
     """
     Decrypts a message with AES. Default: uses the database key
     :param encrypted_message: the encrypted message
@@ -97,6 +83,9 @@ def aes_decrypt(encrypted_message, key=database_key):
     :return: the decrypted message
     """
     iv_encoded, ciphertext_encoded = _string_to_encrypted(encrypted_message)
+
+    # Decode the key string into a key
+    key = base64.b64decode(key.encode('utf-8'))
 
     # Decode the Base64-encoded IV and ciphertext
     iv = base64.b64decode(iv_encoded)

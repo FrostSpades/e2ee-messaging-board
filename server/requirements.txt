@@ -1,0 +1,12 @@
+flask
+Flask-SQLAlchemy
+Flask-Bcrypt
+Flask-Login
+Flask-WTF
+cryptography
+Flask-MySQLdb
+email_validator
+SQLAlchemy
+WTForms
+Jinja2
+Werkzeug

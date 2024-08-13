@@ -13,6 +13,7 @@ from app import db
 from sqlalchemy.orm import joinedload
 from datetime import datetime
 from app.crypto import aes_encrypt, aes_decrypt
+from config import database_key
 
 bp = Blueprint('page', __name__)
 
@@ -363,7 +364,7 @@ def _get_posts(page_id):
     posts = []
 
     for post in database_posts:
-        post_created_date_time = aes_decrypt(post.created_at).split()
+        post_created_date_time = aes_decrypt(post.created_at, database_key).split()
         posts.append({"message": post.encrypted_message, "user": post.user.username, "date": post_created_date_time[0], "time": post_created_date_time[1]})
 
     return posts
@@ -381,7 +382,7 @@ def add_post(page_id):
     # If post submission was valid, add the post
     if post_add_form.validate_on_submit():
         # Get and encrypt the current time for the timestamp
-        encrypted_time = aes_encrypt(str(datetime.now()))
+        encrypted_time = aes_encrypt(str(datetime.now()), database_key)
 
         # Add the post to the database
         new_post = Post(encrypted_message=post_add_form.encrypted_message.data, user_id=current_user.id, page_id=page_id, created_at=encrypted_time)

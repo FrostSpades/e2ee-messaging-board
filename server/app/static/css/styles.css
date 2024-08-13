@@ -15,7 +15,7 @@ body {
 }
 
 .full-container {
-    height: 98vh; /* Full height of the viewport */
+    height: 98vh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -117,7 +117,6 @@ button {
     text-align: center;
     text-decoration: none;
     cursor: pointer;
-    border: 1px solid transparent;
     border-radius: 0.375rem;
     color: #6c757d;
     background-color: transparent;
@@ -137,47 +136,43 @@ button.ml-2 {
 }
 
 .scrollable-container {
-    height: 100px; /* Fixed height for the container */
-    overflow-y: auto; /* Enable vertical scrolling */
-    border: 1px solid #ddd; /* Optional: border around the container */
-    padding: 5px; /* Optional: padding inside the container */
+    height: 100px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 5px;
 }
 
 .scrollable-list {
-    list-style-type: none; /* Remove default list styling */
+    list-style-type: none;
     padding: 0;
     margin: 0;
 }
 
 .scrollable-list li {
     padding: 5px;
-    border-bottom: 1px solid #ddd; /* Optional: border between items */
+    border-bottom: 1px solid #ddd;
 }
 
-/* Ensure the forms container uses flexbox layout */
 .forms-container {
     display: flex;
-    justify-content: space-between; /* Adjust spacing between forms */
-    gap: 20px; /* Adjust the gap between forms as needed */
+    justify-content: space-between;
+    gap: 20px;
 }
 
-/* Style for the forms inside add-user-forms */
 .add-user-forms {
     display: flex;
     flex-direction: column;
-    gap: 20px; /* Adjust the gap between the stacked forms as needed */
+    gap: 20px;
 }
 
-/* Ensure create-page-form and add-user-forms take up equal space */
 #add-user-form, #create-page-form, #remove-user-form {
-    flex: 1; /* Make both forms take up equal space */
+    flex: 1;
     padding: 20px;
     border: 1px solid #ddd;
     border-radius: 8px;
-    background-color: #fff; /* Keep the background consistent */
+    background-color: #fff;
 }
 
-/* Adjust the form group styling if needed */
 .form-group {
     margin-bottom: 15px;
 }
@@ -202,12 +197,10 @@ button.ml-2 {
     resize: vertical;
 }
 
-/* Flexbox layout for the main container */
 .row {
     display: flex;
 }
 
-/* Columns */
 .left-col {
     flex: 2;
     padding: 20px;
@@ -218,18 +211,16 @@ button.ml-2 {
     padding: 20px;
 }
 
-/* Styling for the page header */
 #page_header {
-    background-color: #ffffff; /* White background for a clean look */
+    background-color: #ffffff;
     padding: 20px;
-    border-radius: 10px; /* Slightly more rounded corners */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* More prominent shadow */
-    margin-bottom: 30px; /* Increase space below the header */
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
     text-align: center;
-    border: 1px solid #ddd; /* Border to separate from background */
+    border: 1px solid #ddd;
 }
 
-/* Enhanced page header text */
 #page_header h1 {
     font-size: 2.5em;
     font-weight: bold;
@@ -242,28 +233,26 @@ button.ml-2 {
     color: #6c757d;
 }
 
-/* Styling for the posts container */
 .posts {
     display: flex;
     flex-direction: column;
-    gap: 20px; /* Increase gap between posts */
+    gap: 20px;
 }
 
 .post-header {
     display: flex;
-    justify-content: space-between; /* Aligns child elements to the edges */
-    align-items: center; /* Aligns the items vertically in the center */
-    margin-bottom: 15px; /* Adds space below the header */
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
 }
 
-/* Styling for individual post */
 .post {
-    background-color: #ffffff; /* White background for posts */
-    padding: 20px; /* More padding inside posts */
-    border-radius: 10px; /* Rounded corners for posts */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Shadow for posts */
-    transition: transform 0.3s, box-shadow 0.3s; /* Smoother hover effects */
-    border: 1px solid #ddd; /* Border to separate from background */
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: 1px solid #ddd;
 }
 
 .post:hover {
@@ -282,27 +271,23 @@ button.ml-2 {
     font-style: italic;
 }
 
-/* Ensure the navbar is positioned at the very top left */
 .navbar {
-    position: relative; /* Position relative for custom adjustments */
-    top: 0; /* Move the navbar up */
-    left: 0; /* Move the navbar to the left */
-    margin: 0; /* Remove default margin */
-    padding: 0.5rem 1rem; /* Adjust padding if needed */
+    position: relative;
+    top: 0;
+    left: 0;
+    margin: 0;
+    padding: 0.5rem 1rem;
 }
 
-/* Optional: Remove default Bootstrap margins */
 .navbar-expand-lg {
     margin-left: 0;
     margin-right: 0;
 }
 
-/* If you need to adjust the overall page margins */
 body {
     margin: 0;
 }
 
-/* Optional: Remove any default padding from the body */
 body {
     padding: 0;
 }

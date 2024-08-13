@@ -12,6 +12,7 @@ from flask_login import login_user, logout_user, current_user
 import time
 from app.crypto import generate_salt, generate_aes_key, aes_key_to_string, aes_encrypt
 import hashlib
+from config import database_key
 
 bp = Blueprint('account', __name__)
 
@@ -80,7 +81,7 @@ def register():
 
     if request.method == 'POST':
         if form.validate_on_submit():
-            encrypted_email = aes_encrypt(request.form['email'])
+            encrypted_email = aes_encrypt(request.form['email'], database_key)
             email_hash = hashlib.sha256(request.form['email'].encode('utf-8')).hexdigest()
 
             # If user does not exist, create user

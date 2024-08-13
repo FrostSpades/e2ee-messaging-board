@@ -13,7 +13,7 @@ class RegistrationForm(FlaskForm):
     """
     Form for registering a new user.
     """
-    username = StringField('Username', validators=[DataRequired(), Length(min=8, max=50)])
+    username = StringField('Username', validators=[DataRequired(), Length(min=3, max=50)])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
