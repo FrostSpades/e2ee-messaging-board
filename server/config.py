@@ -32,6 +32,9 @@ def _decrypt_config():
     except json.JSONDecodeError:
         print("Error: Incorrect encryption key")
         exit(1)
+    except UnicodeDecodeError:
+        print("Error: Incorrect encryption key")
+        exit(1)
 
     return config_data
 

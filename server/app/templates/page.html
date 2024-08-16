@@ -74,6 +74,9 @@
             </main>
         </div>
     </div>
+    <form id="delete-post-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    </form>
     <footer>
         <p style="text-align:center; margin-top: 20px;">&copy; 2024 Ethan Andrews. All rights reserved.</p>
     </footer>
@@ -82,6 +85,7 @@
         let encrypted_title_string = "{{ page.encrypted_title }}";
         let encrypted_description_string = "{{ page.encrypted_description }}";
         let page_id = "{{page.id}}";
+        let username = "{{ current_user.username }}"
     </script>
     <script src="{{ url_for('static', filename='js/form-funcs.js') }}"></script>
     <script src="{{ url_for('static', filename='js/security.js') }}"></script>

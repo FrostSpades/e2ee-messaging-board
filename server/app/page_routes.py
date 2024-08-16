@@ -7,7 +7,8 @@ Routes for the page behavior.
 from flask import Blueprint, render_template, redirect, url_for, jsonify, session, abort, flash
 from flask_login import login_required, current_user
 from app.account_routes import check_time_since_login as main_check_time_since_login
-from app.page_forms import RemoveUserForm, PageCreateForm, PostCreateForm, AcceptInviteForm, UserForm, InviteUserForm, DeletePageForm
+from app.page_forms import RemoveUserForm, PageCreateForm, PostCreateForm, AcceptInviteForm, UserForm, InviteUserForm, \
+    DeletePageForm, DeletePostForm
 from app.models import User, Page, UserAccess, Invite, Post
 from app import db
 from sqlalchemy.orm import joinedload
@@ -264,45 +265,60 @@ def pages():
 
 
 @bp.route('/pages/<int:page_id>/delete', methods=['POST'])
-def delete_page(page_id):
+def delete_page_request(page_id):
     """
-    Deletes the page with the given id.
+    Removes a user's page access with the given id. Deletes page if no one
+    has access.
     :param page_id:
     :return:
     """
     form = DeletePageForm()
 
-    # Deletes a page and all of its data
     if form.validate_on_submit():
-        # Remove all the users from the page
-        user_access = UserAccess.query.filter_by(page_id=page_id).all()
-        for user_page in user_access:
-            db.session.delete(user_page)
-
-        # Delete all the posts
-        posts = Post.query.filter_by(page_id=page_id).all()
-        for post in posts:
-            db.session.delete(post)
-
-        # Delete the invites
-        invites = Invite.query.filter_by(page_id=page_id).all()
-        for invite in invites:
-            db.session.delete(invite)
-
-        # Delete the page
+        # Check if the user has access to the page
         page = Page.query.filter_by(id=page_id).first()
-        db.session.delete(page)
+        if not _user_has_access(page):
+            return jsonify({"success":False})
 
-        # Commit the changes
+        # Delete the user's access to a page
+        user_access = next((user_access for user_access in page.user_access if user_access.user_id == current_user.id), None)
+        db.session.delete(user_access)
         db.session.commit()
 
-        # Extract page information
+        # If there are no user's in a page, delete the page
+        if len(page.users) == 0:
+            _delete_page(page)
+
+        # Extract user's page information
         user = User.query.filter_by(id=current_user.id).first()
         user_pages = _get_users_pages(user)
 
         return jsonify({"success": True, "current_username": user.username, "pages": user_pages, "browser_key": user.browser_encryption_key})
 
     return jsonify({"success": False})
+
+
+def _delete_page(page):
+    """
+    Deletes a page and all of its dependencies.
+    :param page: the id of the page to delete
+    :return:
+    """
+    # Delete all the posts
+    posts = page.posts
+    for post in posts:
+        db.session.delete(post)
+
+    # Delete the invites
+    invites = page.invites
+    for invite in invites:
+        db.session.delete(invite)
+
+    # Delete the page
+    db.session.delete(page)
+
+    # Commit the changes
+    db.session.commit()
 
 
 @bp.route('/page/<int:page_id>', methods=['GET'])
@@ -335,7 +351,7 @@ def _user_has_access(page):
         return False
 
     # Check if user has access to page
-    if UserAccess.query.filter_by(user_id=current_user.id, page_id=page.id).first() is None:
+    if not any(user.id == current_user.id for user in page.users):
         return False
 
     return True
@@ -365,7 +381,7 @@ def _get_posts(page_id):
 
     for post in database_posts:
         post_created_date_time = aes_decrypt(post.created_at, database_key).split()
-        posts.append({"message": post.encrypted_message, "user": post.user.username, "date": post_created_date_time[0], "time": post_created_date_time[1]})
+        posts.append({"id": post.id, "message": post.encrypted_message, "user": post.user.username, "date": post_created_date_time[0], "time": post_created_date_time[1]})
 
     return posts
 
@@ -397,6 +413,38 @@ def add_post(page_id):
         user_access = next((user_access for user_access in user.user_access if user_access.page_id == page_id), None)
 
         return jsonify({"success": True, "posts": posts, "current_username": user.username, "browser_key": user.browser_encryption_key, "page_key": user_access.encrypted_key})
+
+    return jsonify({"success": False})
+
+
+@bp.route('/page/<int:page_id>/delete-post/<int:post_id>', methods=['POST'])
+@login_required
+def delete_post(page_id, post_id):
+    form = DeletePostForm()
+
+    # Check if user has access to this request
+    if not _user_has_access(Page.query.filter_by(id=page_id).first()):
+        abort(403)
+
+    if form.validate_on_submit():
+        # Check if user has access to post
+        post = Post.query.filter_by(id=post_id).first()
+        if post.user_id != current_user.id:
+            return jsonify({"success": False})
+
+        # Delete the post
+        db.session.delete(post)
+        db.session.commit()
+
+        # Retrieve all the posts associated with the page
+        posts = _get_posts(page_id)
+
+        # Retrieve the user and page in order to get key information
+        user = User.query.filter_by(id=current_user.id).first()
+        user_access = next((user_access for user_access in user.user_access if user_access.page_id == page_id), None)
+
+        return jsonify({"success": True, "posts": posts, "current_username": user.username,
+                        "browser_key": user.browser_encryption_key, "page_key": user_access.encrypted_key})
 
     return jsonify({"success": False})
 

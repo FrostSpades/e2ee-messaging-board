@@ -91,7 +91,7 @@ function addPage(tbody, page_id, page_title) {
 
     // Add the delete button
     let deleteButton = document.createElement('a');
-    deleteButton.textContent = 'Delete';
+    deleteButton.textContent = 'Remove';
     deleteButton.onclick = deletePage;
     deleteButton.className = 'btn btn-sm btn-danger';
     tdActions.appendChild(deleteButton);

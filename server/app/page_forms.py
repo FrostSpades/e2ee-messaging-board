@@ -68,3 +68,10 @@ class DeletePageForm(FlaskForm):
     Form for deleting a page with a given page id.
     """
     page_id = StringField('Page ID', validators=[DataRequired()])
+
+
+class DeletePostForm(FlaskForm):
+    """
+    Form for deleting a post with a given post id.
+    """
+    post_id = StringField('Post ID', validators=[DataRequired()])

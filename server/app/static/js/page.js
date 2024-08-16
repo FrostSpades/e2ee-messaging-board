@@ -110,6 +110,31 @@ async function addUserSubmit(data) {
     form.encrypted_key.value = "";
 }
 
+async function deletePost(event) {
+    const button = event.currentTarget;
+    let post = button.closest('.post')
+    const post_id = post.querySelector('.post-id').value;
+
+    let form = document.getElementById('delete-post-form');
+    const post_id_input = document.createElement('input');
+    post_id_input.value = post_id;
+    post_id_input.type = 'hidden';
+    post_id_input.name = 'post_id';
+
+    form.appendChild(post_id_input);
+
+    // Submit the form
+    const form_data = new FormData(form);
+
+    fetch(`/page/${page_id}/delete-post/${post_id}`, {
+        method: 'POST',
+        body: form_data
+    })
+    .then(response => response.json())
+    .then(updateScreen)
+    .catch(error => console.error('Error:', error));
+}
+
 /**
  * Method for updating the screen
  * @param data new screen data
@@ -158,42 +183,7 @@ async function updateScreen(data) {
         for (let i = 0; i < data['posts'].length; i++) {
             let post = data['posts'][i]
 
-            // Create a new div element for each post
-            const postDiv = document.createElement('div');
-            postDiv.classList.add('post');
-
-            // Create a p element for the post content
-            const postContent = document.createElement('p');
-            postContent.classList.add('post-content');
-
-            // Decrypt post message
-            let encrypted_post = post['message'];
-            encrypted_post = stringToEncryptMessage(encrypted_post);
-            postContent.textContent = await decryptMessage(page_key, encrypted_post.iv, encrypted_post.encrypted);
-
-            // Create a post header to hold the user, date, and time
-            const post_header = document.createElement('div');
-            post_header.classList.add('post-header');
-
-            // Create a p element for the post user
-            const postUser = document.createElement('div');
-            postUser.classList.add('post-user');
-            postUser.textContent = `Posted by: ${post.user}`;
-
-            // Create a p element for the post time
-            const postDateTime = document.createElement('div');
-            postDateTime.classList.add('post-date-time');
-            postDateTime.textContent = `On ${post.date} at ${post.time}`;
-
-            post_header.appendChild(postUser);
-            post_header.appendChild(postDateTime);
-
-            // Append the post content and user to the post div
-            postDiv.appendChild(postContent);
-            postDiv.appendChild(post_header);
-
-            // Append the post div to the posts container
-            postsContainer.appendChild(postDiv);
+            await addPostToContainer(page_key, postsContainer, post);
         }
     }
     // Add 'show' class to posts after they are appended
@@ -206,6 +196,71 @@ async function updateScreen(data) {
     data = "";
     keys = "";
     page_key = "";
+}
+
+/**
+ * Adds a post to the posts container
+ * @param page_key decryption key to access post content
+ * @param postsContainer the container
+ * @param post the post
+ * @returns {Promise<void>}
+ */
+async function addPostToContainer(page_key, postsContainer, post) {
+    // Create a new div element for each post
+    const postDiv = document.createElement('div');
+    postDiv.classList.add('post');
+
+    // Create a p element for the post content
+    const postContent = document.createElement('p');
+    postContent.classList.add('post-content');
+
+    // Decrypt post message
+    let encrypted_post = post['message'];
+    encrypted_post = stringToEncryptMessage(encrypted_post);
+    postContent.textContent = await decryptMessage(page_key, encrypted_post.iv, encrypted_post.encrypted);
+
+    // Create a post header to hold the user, date, and time
+    const post_header = document.createElement('div');
+    post_header.classList.add('post-header');
+
+    // Create a p element for the post user
+    const postUser = document.createElement('div');
+    postUser.classList.add('post-user');
+    postUser.textContent = `Posted by: ${post.user}`;
+
+    // Create a p element for the post time
+    const postDateTime = document.createElement('div');
+    postDateTime.classList.add('post-date-time');
+    postDateTime.textContent = `On ${post.date} at ${post.time}`;
+
+    // Add delete button
+    const deleteButton = document.createElement('a');
+    deleteButton.textContent = 'Remove';
+    deleteButton.onclick = deletePost;
+    deleteButton.className = 'btn btn-sm btn-danger';
+
+    // Add the post id
+    const post_id = document.createElement('input');
+    post_id.name = "post_id";
+    post_id.classList.add('post-id');
+    post_id.value = post.id;
+    post_id.type = 'hidden';
+
+    post_header.appendChild(postUser);
+    post_header.appendChild(postDateTime);
+
+    // Only add delete button if user created the post
+    if (username === post.user) {
+        post_header.appendChild(deleteButton);
+    }
+
+    // Append the post content and user to the post div
+    postDiv.appendChild(postContent);
+    postDiv.appendChild(post_header);
+    postDiv.appendChild(post_id);
+
+    // Append the post div to the posts container
+    postsContainer.appendChild(postDiv);
 }
 
 function updateTitle(title, description) {
