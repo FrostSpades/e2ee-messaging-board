@@ -1,5 +1,8 @@
 # End-to-End Encrypted Messaging Board Website
-A website that serves as a messaging board that utilizes end-to-end encryption.
+A website that serves as a messaging board that utilizes end-to-end encryption. For the explanation of how the end-to-end encryption works, please read [explanation](#explanation).
+
+# Installation and Demonstration Video
+[![Video Installation and Demonstration](https://img.youtube.com/vi/yqDLsxhCQhM/maxresdefault.jpg)](https://youtu.be/yqDLsxhCQhM)
 
 Contents
 ---
