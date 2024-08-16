@@ -107,6 +107,7 @@ def remove_user():
     :return: json object
     """
     remove_user_form = RemoveUserForm()
+
     if remove_user_form.validate_on_submit():
         # Remove user if it exists in the user's session
         if "invite_users" in session and remove_user_form.remove_user.data in session['invite_users']:
@@ -118,10 +119,9 @@ def remove_user():
             user = User.query.filter_by(id=current_user.id).first()
 
             return jsonify({"success": True, "current_username": user.username, "message": "Successfully Removed User", "users": users_and_keys})
-        else:
-            return jsonify({"success": False, "message": "Could Not Remove User"})
-    else:
-        return jsonify({"success": False, "message": "Invalid data"})
+
+    flash("Could not remove user", "error")
+    return jsonify({"success": False, "flash":True})
 
 
 @bp.route('/create-page/get-keys', methods=['GET'])
@@ -274,12 +274,12 @@ def delete_page_request(page_id):
     """
     form = DeletePageForm()
 
-    if form.validate_on_submit():
-        # Check if the user has access to the page
-        page = Page.query.filter_by(id=page_id).first()
-        if not _user_has_access(page):
-            return jsonify({"success":False})
+    # Check if user has access to this request
+    page = Page.query.filter_by(id=page_id).first()
+    if not _user_has_access(page):
+        abort(403)
 
+    if form.validate_on_submit():
         # Delete the user's access to a page
         user_access = next((user_access for user_access in page.user_access if user_access.user_id == current_user.id), None)
         db.session.delete(user_access)
@@ -332,7 +332,7 @@ def view_page(page_id):
     post_add_form = PostCreateForm()
     add_user_form = UserForm()
 
-    # Query the Database to see if page exists
+    # See if user has access to page
     page = Page.query.filter_by(id=page_id).first()
     if not _user_has_access(page):
         abort(403)
@@ -360,6 +360,17 @@ def _user_has_access(page):
 @bp.route('/page/<int:page_id>/init-get', methods=['GET'])
 @login_required
 def page_init_get(page_id):
+    """
+    Get the necessary objects for page loading for an individual page
+    :param page_id: id of the page
+    :return:
+    """
+
+    # See if user has access to page
+    page = Page.query.filter_by(id=page_id).first()
+    if not _user_has_access(page):
+        abort(403)
+
     # Retrieve all the posts associated with the page
     posts = _get_posts(page_id)
 
@@ -389,6 +400,11 @@ def _get_posts(page_id):
 @bp.route('/page/<int:page_id>/add-post', methods=['POST'])
 @login_required
 def add_post(page_id):
+    """
+    Adds a post to a page
+    :param page_id: the id of the page.
+    :return:
+    """
     post_add_form = PostCreateForm()
 
     # Check if user has access to this request
@@ -414,12 +430,19 @@ def add_post(page_id):
 
         return jsonify({"success": True, "posts": posts, "current_username": user.username, "browser_key": user.browser_encryption_key, "page_key": user_access.encrypted_key})
 
-    return jsonify({"success": False})
+    flash("Could not add post", "error")
+    return jsonify({"success": False, "flash": True})
 
 
 @bp.route('/page/<int:page_id>/delete-post/<int:post_id>', methods=['POST'])
 @login_required
 def delete_post(page_id, post_id):
+    """
+    Deletes a post from a page with a given post id
+    :param page_id: the id of the page
+    :param post_id: the id of the post
+    :return:
+    """
     form = DeletePostForm()
 
     # Check if user has access to this request
@@ -446,7 +469,8 @@ def delete_post(page_id, post_id):
         return jsonify({"success": True, "posts": posts, "current_username": user.username,
                         "browser_key": user.browser_encryption_key, "page_key": user_access.encrypted_key})
 
-    return jsonify({"success": False})
+    flash("Could not delete post", "error")
+    return jsonify({"success": False, "flash": True})
 
 
 @bp.route('/page/<int:page_id>/invite-user/request', methods=['POST'])
@@ -469,7 +493,8 @@ def existing_page_invite_request(page_id):
 
             return jsonify({"success": True, "invite_public_key": invited_user.public_key, "browser_key": user_access.user.browser_encryption_key, "encrypted_page_key": user_access.encrypted_key})
 
-    return jsonify({"success": False})
+    flash("Could not invite user", "error")
+    return jsonify({"success": False, "flash": True})
 
 
 @bp.route('/page/<int:page_id>/invite-user', methods=['POST'])
@@ -499,18 +524,27 @@ def existing_page_invite(page_id):
 
             return jsonify({"success": True, "current_username": user.username})
 
-    return jsonify({"success": False})
+    flash("Could not invite user", "error")
+    return jsonify({"success": False, "flash": True})
 
 
 @bp.route('/pages/invites', methods=['GET'])
 @login_required
 def page_invites():
+    """
+    Handles the page invites route.
+    :return:
+    """
     return render_template('page_invites.html')
 
 
 @bp.route('/pages/invites/init-get', methods=['GET'])
 @login_required
 def page_invites_init_get():
+    """
+    Returns the objects necessary for loading page invites.
+    :return:
+    """
     # Get invites
     user_invites = _get_invites()
 
@@ -536,6 +570,11 @@ def _get_invites():
 @bp.route("/pages/accept-invite/<int:invite_id>", methods=['POST'])
 @login_required
 def page_accept_invite(invite_id):
+    """
+    Accepts a page invite
+    :param invite_id: the id of the invite
+    :return:
+    """
     form = AcceptInviteForm()
 
     if form.validate_on_submit():
@@ -563,6 +602,11 @@ def page_accept_invite(invite_id):
 @bp.route("/pages/decline-invite/<int:invite_id>", methods=['POST'])
 @login_required
 def page_decline_invite(invite_id):
+    """
+    Declines a page invite
+    :param invite_id: the id of the invite
+    :return:
+    """
     invite = Invite.query.filter_by(id=invite_id).first()
 
     # Check if user has access

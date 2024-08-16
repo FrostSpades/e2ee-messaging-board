@@ -67,7 +67,13 @@ function addUser() {
 async function addUserSubmit(data) {
     // If the request was not successful, exit method
     if (!data['success']) {
-        return
+        if (data['flash']) {
+        // Refresh
+        window.location.href = `/page/${page_id}`;
+        }
+        else {
+            return;
+        }
     }
 
     // Check if sessionStorage contains the encrypted user key
@@ -140,7 +146,11 @@ async function deletePost(event) {
  * @param data new screen data
  */
 async function updateScreen(data) {
-    // If failed, do not update screen
+    // If unsuccessful, either refresh the page with the flash message, or do nothing if no flash messages were provided
+    if (data['flash']) {
+        window.location.href = `/page/${page_id}`;
+    }
+
     if (!data['success']) {
         return;
     }
